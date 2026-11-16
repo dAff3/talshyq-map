@@ -31,13 +31,20 @@ const demoIdeas = [
   },
 ];
 
+const ACCOUNTS_KEY = 'talshyk-pages-accounts-v1';
+const SESSION_KEY = 'talshyk-pages-session-v1';
+const VOTES_KEY = 'talshyk-pages-local-votes-v1';
 let activeStatus = 'Все инициативы';
 let activeCategory = 'Все';
 let searchTerm = '';
 let sortMode = 'newest';
+let currentUser = null;
+let registering = false;
 const grid = document.querySelector('#cards-grid');
 const emptyState = document.querySelector('#empty-state');
 const toast = document.querySelector('#toast');
+const authDialog = document.querySelector('#auth-dialog');
+const accountDialog = document.querySelector('#account-dialog');
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -48,6 +55,82 @@ function showToast(message) {
   toast.classList.add('visible');
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => toast.classList.remove('visible'), 3400);
+}
+
+function readLocalList(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function readLocalVotes() {
+  try {
+    const value = JSON.parse(localStorage.getItem(VOTES_KEY) || '{}');
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function updateAccountUI() {
+  document.querySelector('#auth-trigger').hidden = Boolean(currentUser);
+  const userButton = document.querySelector('#current-user');
+  userButton.hidden = !currentUser;
+  userButton.textContent = currentUser?.displayName || '';
+  userButton.title = currentUser ? `Профиль ${currentUser.displayName}` : '';
+}
+
+function openAuth(register = false) {
+  if (currentUser) return accountDialog.showModal();
+  setAuthMode(register);
+  authDialog.showModal();
+}
+
+function setAuthMode(register) {
+  registering = register;
+  document.querySelector('#auth-title').textContent = register ? 'Создать аккаунт' : 'Войти';
+  document.querySelector('#auth-copy').textContent = register
+    ? 'Аккаунт будет сохранён только в этом браузере.'
+    : 'Войдите в аккаунт, сохранённый на этом устройстве.';
+  document.querySelector('#name-field').hidden = !register;
+  document.querySelector('#name-field input').required = register;
+  document.querySelector('#auth-submit').textContent = register ? 'Зарегистрироваться' : 'Войти';
+  document.querySelector('#auth-switch').innerHTML = register
+    ? 'Уже есть аккаунт? <button type="button" id="switch-auth">Войти</button>'
+    : 'Нет аккаунта? <button type="button" id="switch-auth">Зарегистрироваться</button>';
+}
+
+function randomHex(bytes = 16) {
+  return Array.from(crypto.getRandomValues(new Uint8Array(bytes)), value => value.toString(16).padStart(2, '0')).join('');
+}
+
+async function passwordHash(password, saltHex) {
+  if (!crypto.subtle) throw new Error('Для регистрации открой сайт через HTTPS в современном браузере.');
+  const salt = new Uint8Array(saltHex.match(/.{2}/g).map(value => Number.parseInt(value, 16)));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 210000, hash: 'SHA-256' }, key, 256);
+  return Array.from(new Uint8Array(bits), value => value.toString(16).padStart(2, '0')).join('');
+}
+
+function hashesMatch(left, right) {
+  if (typeof left !== 'string' || typeof right !== 'string' || left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index++) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  return difference === 0;
+}
+
+function openAccount() {
+  if (!currentUser) return openAuth(false);
+  const votes = readLocalVotes()[currentUser.username] || [];
+  document.querySelector('#account-avatar').textContent = currentUser.displayName.slice(0, 1).toUpperCase();
+  document.querySelector('#account-name').textContent = currentUser.displayName;
+  document.querySelector('#account-handle').textContent = `@${currentUser.username}`;
+  document.querySelector('#account-created').textContent = `Аккаунт создан ${new Date(currentUser.createdAt).toLocaleDateString('ru-RU')}`;
+  document.querySelector('#account-votes').textContent = votes.length;
+  accountDialog.showModal();
 }
 
 function statusClass(status) {
@@ -67,6 +150,8 @@ function render() {
   });
 
   grid.innerHTML = visible.map(idea => {
+    const voted = Boolean(currentUser && (readLocalVotes()[currentUser.username] || []).includes(idea.id));
+    const voteCount = idea.votes + Number(voted);
     const progress = idea.status !== 'На голосовании'
       ? `<div class="card-progress" aria-label="Выполнено ${idea.progress}%"><i style="width:${idea.progress}%"></i></div>` : '';
     return `<article class="idea-card">
@@ -77,14 +162,15 @@ function render() {
       <div class="card-content">
         <div class="card-meta"><span class="card-category">${escapeHtml(idea.category)}</span><span>${escapeHtml(idea.created_at)}</span></div>
         <h3>${escapeHtml(idea.title)}</h3><p>${escapeHtml(idea.description)}</p>${progress}
-        <div class="card-footer"><span class="author"><i class="author-avatar">${escapeHtml(idea.author_name.slice(0, 1))}</i>${escapeHtml(idea.author_name)}</span><div class="card-actions"><button class="discussion-button" type="button" data-demo-action="discussion"><span>Обсудить</span><b>0</b></button><button class="vote-button" type="button" data-demo-action="vote">♡ Поддержать · ${idea.votes}</button></div></div>
+        <div class="card-footer"><span class="author"><i class="author-avatar">${escapeHtml(idea.author_name.slice(0, 1))}</i>${escapeHtml(idea.author_name)}</span><div class="card-actions"><button class="discussion-button" type="button" data-demo-action="discussion"><span>Обсудить</span><b>0</b></button><button class="vote-button ${voted ? 'voted' : ''}" type="button" data-demo-action="vote" data-idea-id="${escapeHtml(idea.id)}">${voted ? '✓ Поддержано' : '♡ Поддержать'} · ${voteCount}</button></div></div>
       </div>
     </article>`;
   }).join('');
   emptyState.hidden = visible.length > 0;
   grid.hidden = visible.length === 0;
   document.querySelector('#stat-ideas').textContent = demoIdeas.length;
-  document.querySelector('#stat-votes').textContent = demoIdeas.reduce((sum, idea) => sum + idea.votes, 0);
+  const personalVotes = currentUser ? (readLocalVotes()[currentUser.username] || []).length : 0;
+  document.querySelector('#stat-votes').textContent = demoIdeas.reduce((sum, idea) => sum + idea.votes, 0) + personalVotes;
   document.querySelector('#stat-members').textContent = '—';
   document.querySelector('#stat-pending').textContent = demoIdeas.filter(idea => idea.status === 'На голосовании').length;
   document.querySelector('#stat-active').textContent = demoIdeas.filter(idea => idea.status === 'В работе').length;
@@ -114,12 +200,99 @@ document.querySelectorAll('.category').forEach(button => button.addEventListener
 document.querySelector('#search').addEventListener('input', event => { searchTerm = event.target.value.trim(); render(); });
 document.querySelector('#idea-sort').addEventListener('change', event => { sortMode = event.target.value; render(); });
 document.querySelector('#cards-grid').addEventListener('click', event => {
-  if (event.target.closest('[data-demo-action="vote"]')) showToast('Голоса в примерах демонстрационные. Для общего голосования нужен сервер.');
-  if (event.target.closest('[data-demo-action="discussion"]')) showToast('Обсуждения появятся после подключения серверной версии.');
+  const voteButton = event.target.closest('[data-demo-action="vote"]');
+  if (voteButton) {
+    if (!currentUser) return openAuth(false);
+    const votes = readLocalVotes();
+    const userVotes = votes[currentUser.username] || [];
+    votes[currentUser.username] = userVotes.includes(voteButton.dataset.ideaId)
+      ? userVotes.filter(id => id !== voteButton.dataset.ideaId)
+      : [...userVotes, voteButton.dataset.ideaId];
+    localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+    render();
+    showToast('Голос сохранён только в этом браузере.');
+    return;
+  }
+  if (event.target.closest('[data-demo-action="discussion"]')) showToast('Обсуждения требуют подключения серверной версии.');
 });
 document.querySelectorAll('[data-backend-required]').forEach(button => button.addEventListener('click', () => {
   showToast('Публикация инициатив доступна в серверной версии сайта.');
 }));
+
+document.querySelector('#auth-trigger').addEventListener('click', () => openAuth(false));
+document.querySelector('#current-user').addEventListener('click', openAccount);
+document.querySelector('#close-auth').addEventListener('click', () => authDialog.close());
+authDialog.addEventListener('click', event => { if (event.target === authDialog) authDialog.close(); });
+document.querySelector('#auth-switch').addEventListener('click', event => {
+  if (event.target.closest('#switch-auth')) setAuthMode(!registering);
+});
+document.querySelector('#auth-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const values = Object.fromEntries(new FormData(form).entries());
+  const username = String(values.username || '').trim().toLowerCase();
+  const password = String(values.password || '');
+  try {
+    const accounts = readLocalList(ACCOUNTS_KEY);
+    if (registering) {
+      const displayName = String(values.name || '').trim();
+      if (!/^[a-z0-9._-]{3,24}$/.test(username)) throw new Error('Логин: 3–24 латинских символа, цифры, точка, _ или -.');
+      if (displayName.length < 2 || displayName.length > 40) throw new Error('Имя должно содержать от 2 до 40 символов.');
+      if (password.length < 10) throw new Error('Пароль должен быть не короче 10 символов.');
+      if (accounts.some(account => account.username === username)) throw new Error('Этот логин уже занят в этом браузере.');
+      const salt = randomHex();
+      const account = {
+        id: randomHex(12), username, displayName, salt,
+        passwordHash: await passwordHash(password, salt),
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, account]));
+      currentUser = account;
+    } else {
+      const account = accounts.find(item => item.username === username);
+      if (!account || !hashesMatch(await passwordHash(password, account.salt), account.passwordHash)) {
+        throw new Error('Неверный логин или пароль.');
+      }
+      currentUser = account;
+    }
+    localStorage.setItem(SESSION_KEY, currentUser.username);
+    form.reset();
+    setAuthMode(false);
+    authDialog.close();
+    updateAccountUI();
+    render();
+    showToast(`Здравствуйте, ${currentUser.displayName}!`);
+  } catch (error) {
+    showToast(error.message || 'Не удалось сохранить аккаунт в браузере.');
+  }
+});
+document.querySelector('#close-account').addEventListener('click', () => accountDialog.close());
+accountDialog.addEventListener('click', event => { if (event.target === accountDialog) accountDialog.close(); });
+document.querySelector('#logout-button').addEventListener('click', () => {
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null;
+  accountDialog.close();
+  updateAccountUI();
+  render();
+  showToast('Вы вышли из аккаунта на этом устройстве.');
+});
+document.querySelector('#delete-account').addEventListener('click', () => {
+  if (!currentUser || !confirm('Удалить аккаунт и его локальные голоса из этого браузера?')) return;
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(readLocalList(ACCOUNTS_KEY).filter(account => account.username !== currentUser.username)));
+  const votes = readLocalVotes();
+  delete votes[currentUser.username];
+  localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null;
+  accountDialog.close();
+  updateAccountUI();
+  render();
+  showToast('Локальный аккаунт удалён.');
+});
+
+const savedUsername = localStorage.getItem(SESSION_KEY);
+currentUser = readLocalList(ACCOUNTS_KEY).find(account => account.username === savedUsername) || null;
+updateAccountUI();
 
 const themeSelect = document.querySelector('#theme-select');
 const deviceTheme = window.matchMedia('(prefers-color-scheme: dark)');

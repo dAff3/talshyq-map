@@ -6,9 +6,23 @@
 .pages-community-note strong{display:block;margin:2px 0 5px;font-size:16px}
 .pages-community-note p{max-width:680px;margin:0;color:var(--muted);font-size:13px;line-height:1.7}
 .pages-demo-note{font-size:11px}
+.auth-trigger,.current-user{white-space:nowrap}
+.current-user{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.account-profile-content{padding:14px 0 4px;text-align:center}
+.account-profile-content .profile-avatar{margin:18px auto 10px}
+.account-profile-content h2{margin:8px 0 4px}
+.account-stats{grid-template-columns:1fr;margin:20px 0 14px}
+.account-stats div{padding:12px}
+.account-local-badge{display:inline-block;padding:7px 10px;border-radius:6px;background:#edf3ed;color:#526b55;font-size:11px}
+.account-profile-actions{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:20px}
+.account-delete{padding:8px 10px;border:0;background:transparent;color:#a04f4f;font-size:11px;cursor:pointer}
+.account-security-note{display:block;margin-top:15px;color:#7e897f;font-size:10px;line-height:1.5}
+body[data-theme="sand"] .account-local-badge{background:#eee6d9;color:#72624b}
+body[data-theme="night"] .account-local-badge{background:#344136;color:#c4d3be}
+body[data-theme="night"] .account-delete{color:#e0a3a0}
 body[data-theme="sand"] .pages-mode-notice{border-color:#e6dccd;background:#fffaf2;color:#71685c}
 body[data-theme="sand"] .pages-mode-notice strong{color:#443c32}
 body[data-theme="night"] .pages-mode-notice{border-color:#39483d;background:#26342a;color:#b5c2b2}
 body[data-theme="night"] .pages-mode-notice strong{color:#e0eadc}
 @media(max-width:1450px){.pages-mode-notice{margin-right:4%;margin-left:4%}}
-@media(max-width:600px){.pages-mode-notice{align-items:flex-start;flex-direction:column;gap:4px;margin-right:5%;margin-left:5%;font-size:11px}.pages-community-note{padding:18px}}
+@media(max-width:600px){.pages-mode-notice{align-items:flex-start;flex-direction:column;gap:4px;margin-right:5%;margin-left:5%;font-size:11px}.pages-community-note{padding:18px}.account-actions{gap:5px}.auth-trigger,.current-user{max-width:92px;padding:8px 10px;font-size:10px}.account-profile-actions{gap:8px}}
