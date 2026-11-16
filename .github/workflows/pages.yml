@@ -1,4 +1,4 @@
-name: Publish Talshyk map
+name: Publish TALSHYK village portal
 
 on:
   push:

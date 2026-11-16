@@ -1,5 +1,7 @@
-# Talshyq Map
+# TALSHYK — сайт села
 
-Public, map-only version of the Talshyq village site. It uses Leaflet and OpenStreetMap; the Python server, database, and account features are intentionally not included.
+Публичная статическая версия информационного сайта села Талшык. На страницах есть новости и объявления, афиша, демонстрационные инициативы, сведения о селе и карта OpenStreetMap.
 
-The GitHub Actions workflow publishes `docs/` to GitHub Pages on pushes to `main`. Edit `docs/index.html` to update the map.
+GitHub Pages не запускает Python-сервер, поэтому здесь нет регистрации, общей базы, реальных голосов и панели администратора. В карточках показаны только демонстрационные данные. Полную серверную версию можно запускать локально из основного приватного репозитория.
+
+GitHub Actions автоматически публикует папку `docs/` в GitHub Pages после изменений в `main`. Основные файлы сайта: `docs/index.html`, `docs/pages.js` и CSS-файлы в `docs/`.

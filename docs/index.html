@@ -3,138 +3,138 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#eef2e9">
-  <meta name="description" content="Интерактивная карта села Талшык, Акжарский район, Северо-Казахстанская область.">
-  <title>Карта Талшыка</title>
-  <link rel="preconnect" href="https://tile.openstreetmap.org">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-  <style>
-    :root{font-family:Inter,"Segoe UI",Arial,sans-serif;color:#1e3027;background:#e9eee6;font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-optical-sizing:auto}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}button,a{font:inherit}button{color:inherit}#map-shell{position:relative;width:100%;height:100%;min-height:360px;background:#e9eee6}.map-canvas{position:absolute;inset:0;z-index:0;background:#e8eee6}.leaflet-container{font:12px/1.5 Inter,"Segoe UI",Arial,sans-serif;background:#e8eee6}.leaflet-control-attribution{font-size:10px!important}.leaflet-control-attribution a{color:#376b4c!important}
-    .topbar{position:absolute;z-index:800;top:18px;right:20px;left:20px;display:flex;align-items:center;gap:12px;pointer-events:none}.brand{display:flex;align-items:center;gap:11px;min-width:230px;padding:10px 14px;border:1px solid #ffffffd9;border-radius:12px;background:#ffffffed;box-shadow:0 8px 28px #2133281a;backdrop-filter:blur(14px);pointer-events:auto}.brand-mark{display:grid;place-items:center;width:37px;height:37px;border-radius:9px;background:#284b38;color:#fff;font-size:19px;font-weight:800;letter-spacing:-.08em}.brand-copy b,.brand-copy small{display:block}.brand-copy b{font-size:12px;letter-spacing:.13em}.brand-copy small{margin-top:3px;color:#819084;font-size:8px;letter-spacing:.12em}.map-title{display:flex;align-items:center;gap:8px;margin-left:auto;padding:11px 14px;border:1px solid #ffffffd9;border-radius:10px;background:#ffffffed;color:#597063;font-size:10px;font-weight:700;letter-spacing:.1em;box-shadow:0 8px 28px #21332812;backdrop-filter:blur(14px);pointer-events:auto}.map-title i{width:7px;height:7px;border-radius:50%;background:#6c956a;box-shadow:0 0 0 4px #6c956a1b}
-    .map-panel{position:absolute;z-index:700;top:82px;left:20px;width:min(354px,calc(100vw - 40px));padding:20px;border:1px solid #ffffffd9;border-radius:13px;background:#fffffff0;box-shadow:0 16px 48px #20332921;backdrop-filter:blur(16px);transition:transform .28s ease,opacity .22s ease}.map-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.eyebrow{color:#849286;font-size:8px;font-weight:750;letter-spacing:.15em}.map-panel h1{margin:8px 0 4px;color:#20372a;font-size:27px;line-height:1.05;letter-spacing:-.055em}.map-panel h1 span{color:#668259;font-size:16px;font-weight:500;letter-spacing:0}.map-panel-lead{margin:0;color:#77847a;font-size:10px;line-height:1.55}.panel-toggle{display:grid;place-items:center;flex:0 0 30px;height:30px;border:1px solid #e4e9e2;border-radius:7px;background:#fff;color:#627366;cursor:pointer;font-size:16px}.panel-toggle:hover{background:#f2f5f0}.location-card{display:flex;align-items:center;gap:11px;margin:18px 0 0;padding:12px;border:1px solid #e4eae3;border-radius:9px;background:#f7f9f6}.location-symbol{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:8px;background:#e5eee2;color:#4e714b;font-size:15px}.location-text small,.location-text b{display:block}.location-text small{color:#8a958b;font-size:8px;letter-spacing:.09em}.location-text b{margin-top:3px;color:#34483a;font-size:11px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.fact{min-height:60px;padding:10px 11px;border:1px solid #e9eee8;border-radius:8px;background:#fff}.fact span,.fact b{display:block}.fact span{color:#929c92;font-size:8px}.fact b{margin-top:5px;color:#405443;font-size:10px;line-height:1.35}.coords-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid #e8ede7}.coords{color:#738174;font-size:9px;font-variant-numeric:tabular-nums}.copy-button{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid #dfe7dd;border-radius:6px;background:#fff;color:#526b53;cursor:pointer;font-size:9px;white-space:nowrap}.copy-button:hover{background:#f3f6f0}.panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action-button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:9px;border:1px solid #dfe7dd;border-radius:7px;background:#fff;color:#506651;text-decoration:none;cursor:pointer;font-size:9px;font-weight:700;transition:background .18s,border-color .18s}.action-button:hover{border-color:#c5d5bf;background:#f4f7f1}.action-primary{border-color:#2f563d;background:#2f563d;color:#fff}.action-primary:hover{border-color:#3e694d;background:#3e694d}.panel-note{margin:12px 1px 0;color:#9aa49a;font-size:8px;line-height:1.5}
-    .map-tools{position:absolute;z-index:650;top:83px;right:20px;display:grid;gap:7px}.map-tool{display:grid;place-items:center;width:39px;height:39px;border:1px solid #ffffffd9;border-radius:9px;background:#fffffff2;color:#415849;box-shadow:0 6px 20px #21332819;cursor:pointer;font-size:15px;transition:transform .16s,background .16s}.map-tool:hover{transform:translateY(-2px);background:#fff}.map-tool[aria-pressed="true"]{background:#e6eee2;color:#355a3c}.leaflet-control-zoom{margin-bottom:22px!important;border:0!important;box-shadow:0 6px 20px #21332819!important}.leaflet-control-zoom a{width:36px!important;height:36px!important;border:1px solid #e1e8df!important;border-radius:8px!important;background:#fffffff2!important;color:#3d5845!important;line-height:34px!important}.leaflet-control-zoom-in{margin-bottom:5px}.leaflet-control-scale-line{border:1px solid #697c6e!important;border-top:0!important;background:#ffffffc9!important;color:#4e6154!important;font-size:9px!important}.talshyk-marker{position:relative;width:38px;height:45px}.talshyk-marker:before{position:absolute;top:2px;left:4px;width:30px;height:30px;border:3px solid white;border-radius:50% 50% 50% 5px;background:#315c41;box-shadow:0 4px 12px #10221555;content:"";transform:rotate(-45deg)}.talshyk-marker:after{position:absolute;top:12px;left:14px;width:10px;height:10px;border:2px solid white;border-radius:50%;background:#e9c76b;content:""}.leaflet-tooltip.town-label{padding:5px 8px;border:1px solid #ffffffd9;border-radius:6px;background:#fffffff0;color:#324536;box-shadow:0 5px 14px #20332920;font-size:10px;font-weight:700}.leaflet-tooltip-top.town-label:before{border-top-color:#ffffffed}.leaflet-popup-content-wrapper{border-radius:9px;box-shadow:0 10px 28px #1b2d2030}.leaflet-popup-content{margin:13px 15px;color:#314535;font-size:11px}.popup-title{font-weight:750;font-size:13px}.popup-sub{margin-top:4px;color:#768479;font-size:10px}.popup-link{display:inline-block;margin-top:8px;color:#4c744d;text-decoration:none;font-weight:700}.map-toast{position:absolute;z-index:900;bottom:27px;left:50%;padding:9px 13px;border:1px solid #ffffffd9;border-radius:8px;background:#203a2bf0;color:#f4f6f1;font-size:10px;box-shadow:0 8px 24px #13211826;opacity:0;transform:translate(-50%,10px);pointer-events:none;transition:opacity .18s,transform .18s}.map-toast.visible{opacity:1;transform:translate(-50%,0)}.map-unavailable{position:absolute;z-index:950;inset:0;display:none;place-items:center;padding:28px;background:#e9eee6;color:#33483a;text-align:center}.map-unavailable.visible{display:grid}.map-unavailable>div{max-width:400px;padding:24px;border:1px solid #dce5da;border-radius:12px;background:white}.map-unavailable h2{margin:0 0 8px;font-size:20px}.map-unavailable p{color:#748175;font-size:12px;line-height:1.6}.map-unavailable a{color:#416b49}
-    .panel-collapsed .map-panel{transform:translateX(calc(-100% - 26px));opacity:0;pointer-events:none}.panel-collapsed .topbar .brand{border-color:#ffffffb0}.panel-toggle .toggle-open{display:none}.panel-collapsed .panel-toggle .toggle-close{display:none}.panel-collapsed .panel-toggle .toggle-open{display:inline}.panel-toggle .toggle-close{display:inline}
-    @media(max-width:700px){.topbar{top:10px;right:10px;left:10px;gap:7px}.brand{min-width:0;padding:8px 10px}.brand-mark{width:33px;height:33px}.brand-copy b{font-size:10px}.brand-copy small{font-size:7px}.map-title{padding:10px;font-size:8px}.map-panel{top:auto;bottom:13px;left:10px;width:calc(100vw - 20px);padding:15px;border-radius:12px}.map-panel h1{font-size:23px}.map-panel-lead{font-size:9px}.location-card{margin-top:12px;padding:9px}.facts{gap:6px;margin-top:9px}.fact{min-height:51px;padding:8px}.coords-row{margin-top:9px;padding-top:9px}.panel-actions{margin-top:8px}.panel-note{margin-top:8px}.map-tools{top:65px;right:10px;gap:6px}.map-tool{width:36px;height:36px}.leaflet-control-zoom{margin-right:10px!important;margin-bottom:calc(325px + 22px)!important}.leaflet-control-attribution{margin-bottom:0!important}.map-toast{bottom:calc(315px + 23px)}.panel-collapsed .map-panel{transform:translateY(calc(100% + 24px))}.panel-collapsed .leaflet-control-zoom{margin-bottom:22px!important}.panel-collapsed .map-toast{bottom:22px}}
-    @media(max-width:390px){.map-title{gap:6px;padding:9px;font-size:7px}.brand{gap:8px}.brand-mark{width:30px;height:30px}.map-panel{padding:13px}.map-panel h1{font-size:21px}.panel-note{display:none}.leaflet-control-zoom{margin-bottom:310px!important}.panel-collapsed .leaflet-control-zoom{margin-bottom:22px!important}}
-    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
-  </style>
+  <meta name="theme-color" content="#294c39">
+  <meta name="description" content="Талшык — новости, объявления, события и инициативы жителей села.">
+  <title>Талшык — сайт села</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="redesign.css">
+  <link rel="stylesheet" href="pages.css">
 </head>
 <body>
-  <main id="map-shell">
-    <div id="map" class="map-canvas" aria-label="Интерактивная карта села Талшык"></div>
-    <header class="topbar">
-      <a class="brand" href="#map" aria-label="Карта села Талшык">
-        <span class="brand-mark">T</span><span class="brand-copy"><b>ТАЛШЫК</b><small>КАРТА СЕЛА</small></span>
-      </a>
-      <span class="map-title"><i></i> СКО · АКЖАРСКИЙ РАЙОН</span>
-    </header>
-    <aside class="map-panel" id="map-panel" aria-label="Информация о точке на карте">
-      <div class="map-panel-head">
-        <div><div class="eyebrow">ИНТЕРАКТИВНАЯ КАРТА</div><h1>Талшык <span>· Талшық</span></h1><p class="map-panel-lead">Найдите село на карте, измените масштаб или откройте маршрут во внешнем картографическом сервисе.</p></div>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Сайт села Талшык — главная">
+      <span class="brand-mark">T</span>
+      <span class="brand-name">ТАЛШЫК<small>САЙТ СЕЛА</small></span>
+    </a>
+    <nav class="top-nav" aria-label="Главная навигация">
+      <a class="nav-active" href="#start">Главная</a>
+      <a href="#news">Новости</a>
+      <a href="#events">Афиша</a>
+      <a href="#ideas">Инициативы</a>
+      <a href="#community">Жители</a>
+      <a href="#about">О селе</a>
+      <a href="#village-map">Карта</a>
+    </nav>
+    <label class="theme-control" for="theme-select"><span>Тема</span><select id="theme-select" aria-label="Цветовая тема"><option value="system">Как на устройстве</option><option value="calm">Оливковая</option><option value="sand">Песочная</option><option value="night">Ночная</option></select></label>
+    <div class="account-actions"><a class="button button-lime top-cta" href="#ideas">Инициативы жителей <span>↘</span></a></div>
+    <button class="menu-toggle" id="menu-toggle" aria-label="Открыть меню">☰</button>
+  </header>
+
+  <main id="top">
+    <aside class="pages-mode-notice" role="note"><strong>Демонстрационная версия</strong><span>GitHub Pages показывает сайт и карту. Для регистрации, общей базы и голосования нужен сервер.</span></aside>
+    <section class="village-hero" id="start">
+      <div class="village-hero-copy">
+        <div class="eyebrow"><span class="village-live-dot"></span> ИНФОРМАЦИОННЫЙ ПОРТАЛ СЕЛА</div>
+        <h1>Талшык —<br><em>место, где мы дома.</em></h1>
+        <p>Новости, объявления, события и инициативы — всё важное о жизни нашего села в одном месте.</p>
+        <div class="village-hero-actions"><a class="button button-lime" href="#news">Новости и объявления <span>↘</span></a><a class="village-text-link" href="#ideas">Инициативы жителей <span>→</span></a></div>
+        <div class="village-hero-note"><span>Люди</span><i></i><span>События</span><i></i><span>Общее дело</span></div>
       </div>
-      <div class="location-card"><span class="location-symbol">⌖</span><span class="location-text"><small>МЕСТОПОЛОЖЕНИЕ</small><b>Северо-Казахстанская область</b></span></div>
-      <div class="facts"><div class="fact"><span>Район</span><b>Акжарский</b></div><div class="fact"><span>Тип населённого пункта</span><b>Село</b></div></div>
-      <div class="coords-row"><span class="coords">53.63806° с. ш. · 71.87278° в. д.</span><button class="copy-button" id="copy-coords" type="button" title="Скопировать координаты">▢ <span>Координаты</span></button></div>
-      <div class="panel-actions"><a class="action-button action-primary" href="https://www.openstreetmap.org/directions?to=53.63806%2C71.87278" target="_blank" rel="noopener">↗ Маршрут</a><button class="action-button" id="share-map" type="button">⇧ Поделиться</button></div>
-      <p class="panel-note">Карта использует данные OpenStreetMap. Подписи и расположение объектов могут обновляться участниками сообщества.</p>
-    </aside>
-    <div class="map-tools" aria-label="Инструменты карты">
-      <button class="map-tool panel-toggle" id="panel-toggle" type="button" aria-label="Свернуть панель" aria-expanded="true" title="Свернуть панель"><span class="toggle-close">×</span><span class="toggle-open">☰</span></button>
-      <button class="map-tool" id="locate-me" type="button" aria-label="Показать моё местоположение" title="Моё местоположение">◎</button>
-      <button class="map-tool" id="center-map" type="button" aria-label="Вернуться к Талшыку" title="Центрировать карту">⌖</button>
-      <button class="map-tool" id="fullscreen-map" type="button" aria-label="На весь экран" title="На весь экран">⛶</button>
-    </div>
-    <div class="map-toast" id="map-toast" role="status" aria-live="polite"></div>
-    <div class="map-unavailable" id="map-unavailable"><div><h2>Карта сейчас недоступна</h2><p>Для интерактивной карты нужен интернет. Можно открыть Талшык напрямую в OpenStreetMap.</p><a href="https://www.openstreetmap.org/?mlat=53.63806&mlon=71.87278#map=14/53.63806/71.87278" target="_blank" rel="noopener">Открыть карту ↗</a></div></div>
-    <noscript><div class="map-unavailable visible"><div><h2>Включите JavaScript</h2><p>Чтобы двигать карту и менять масштаб, откройте Талшык на OpenStreetMap.</p><a href="https://www.openstreetmap.org/?mlat=53.63806&mlon=71.87278#map=14/53.63806/71.87278">Открыть OpenStreetMap ↗</a></div></div></noscript>
+      <div class="village-scene" role="img" aria-label="Иллюстрация спокойного сельского пейзажа">
+        <span class="scene-sun"></span><span class="scene-cloud scene-cloud-one"></span><span class="scene-cloud scene-cloud-two"></span>
+        <span class="scene-hill scene-hill-back"></span><span class="scene-hill scene-hill-front"></span>
+        <span class="scene-road"></span>
+        <span class="scene-house scene-house-one"><i></i><b></b><em></em></span><span class="scene-house scene-house-two"><i></i><b></b><em></em></span>
+        <span class="scene-tree scene-tree-one"><i></i><b></b></span><span class="scene-tree scene-tree-two"><i></i><b></b></span><span class="scene-tree scene-tree-three"><i></i><b></b></span>
+        <div class="scene-caption"><span class="scene-caption-mark">T</span><span><b>Талшык</b><small>Село, которое объединяет</small></span><span class="scene-caption-arrow">↗</span></div>
+      </div>
+    </section>
+
+    <section class="portal-shortcuts" aria-label="Разделы сайта">
+      <a class="portal-shortcut" href="#news"><span class="shortcut-icon">▤</span><span><b>Новости и объявления</b><small>Важная информация для жителей</small></span><i>↗</i></a>
+      <a class="portal-shortcut" href="#events"><span class="shortcut-icon shortcut-icon-warm">✳</span><span><b>Афиша села</b><small>События, встречи и активности</small></span><i>↗</i></a>
+      <a class="portal-shortcut" href="#ideas"><span class="shortcut-icon shortcut-icon-blue">⌂</span><span><b>Инициативы жителей</b><small>Идеи и проекты для Талшыка</small></span><i>↗</i></a>
+    </section>
+
+    <section class="village-news" id="news">
+      <div class="section-heading"><div><div class="eyebrow">БУДЬТЕ В КУРСЕ</div><h2>Новости и объявления</h2></div><span class="section-note">Информация для жителей Талшыка</span></div>
+      <div class="news-layout">
+        <article class="news-welcome-card"><div class="news-card-top"><span class="news-label"><i></i> ИНФОРМАЦИОННАЯ ЛЕНТА</span><span class="news-date">ПОРТАЛ СЕЛА</span></div><div class="news-welcome-content"><span class="news-index">01 / 03</span><h3>Важное —<br>рядом.</h3><p>Здесь будут собираться новости, объявления и сообщения организаций, чтобы жители могли быстро найти нужную информацию.</p><span class="news-ready">Раздел готов к публикациям</span></div><span class="news-watermark">T</span></article>
+        <div class="news-topics">
+          <article class="news-topic-card"><span class="news-topic-icon">▣</span><div><span class="eyebrow">ОБЪЯВЛЕНИЯ</span><h3>Полезная информация</h3><p>Сообщения и напоминания для жителей села.</p></div><span class="news-topic-arrow">↗</span></article>
+          <article class="news-topic-card"><span class="news-topic-icon news-topic-icon-warm">✳</span><div><span class="eyebrow">ЖИЗНЬ СЕЛА</span><h3>Новости Талшыка</h3><p>Истории людей, организаций и общих дел.</p></div><span class="news-topic-arrow">↗</span></article>
+          <article class="news-topic-card"><span class="news-topic-icon news-topic-icon-green">▦</span><div><span class="eyebrow">ПУБЛИКАЦИИ</span><h3>Фото и события</h3><p>Место для афиши, встреч и заметок о селе.</p></div><span class="news-topic-arrow">↗</span></article>
+        </div>
+      </div>
+      <p class="portal-editor-note">Новостная лента и афиша пока служат макетом: публикации появятся после подключения редакторской панели.</p>
+    </section>
+
+    <section class="village-events" id="events"><div class="events-copy"><div class="eyebrow">КАЛЕНДАРЬ ЖИЗНИ СЕЛА</div><h2>Встречаемся<br>в Талшыке.</h2><p>Анонсы общественных, культурных и спортивных событий будут собраны в одном календаре.</p></div><div class="events-empty"><span class="events-empty-icon">✳</span><div><strong>Афиша появится здесь</strong><small>Когда добавятся события, здесь будут указаны дата, место и подробности.</small></div><a href="#community" aria-label="Перейти к сообществу">↗</a></div></section>
+
+    <section class="about-village" id="about"><div class="about-village-copy"><div class="eyebrow">О ТАЛШЫКЕ</div><h2>Село — это люди,<br><em>которые рядом.</em></h2><p>Этот сайт собирает в одном месте новости и объявления, афишу и инициативы жителей — всё, что помогает быть в курсе жизни Талшыка.</p></div><div class="about-village-points"><a href="#news"><span>01</span><div><strong>Информация рядом</strong><small>Новости и полезные объявления для жителей</small></div><b>↗</b></a><a href="#events"><span>02</span><div><strong>Жизнь села</strong><small>События, встречи и культурная афиша</small></div><b>↗</b></a><a href="#ideas"><span>03</span><div><strong>Общие инициативы</strong><small>Предложения жителей и путь к результату</small></div><b>↗</b></a></div></section>
+
+    <section class="village-details" id="village-map">
+      <div class="section-heading"><div><div class="eyebrow">НАШ АДРЕС</div><h2>Талшык на карте</h2></div><span class="section-note">Акжарский район · Северо-Казахстанская область</span></div>
+      <div class="village-details-layout">
+        <article class="village-facts-card">
+          <div class="village-facts-heading"><span class="village-facts-mark">T</span><div><strong>Талшык</strong><small>Село и районный центр</small></div><span class="facts-kazakh">ТАЛШЫҚ</span></div>
+          <p class="village-facts-intro">Талшык — село в Северо-Казахстанской области и административный центр Акжарского района.</p>
+          <div class="village-facts-list"><div><span>Область</span><strong>Северо-Казахстанская</strong></div><div><span>Район</span><strong>Акжарский</strong></div><div><span>Статус</span><strong>Административный центр района</strong></div><div><span>Население</span><strong>3 988 человек <small>перепись 2021 года</small></strong></div><div><span>Координаты</span><strong>53.63806° с. ш. · 71.87278° в. д.</strong></div></div>
+          <div class="village-facts-sources"><span>Источники:</span><a href="https://new.cisstat.org/documents/20143/479011/%D0%9D%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%2B%D0%A0%D0%B5%D1%81%D0%BF%D1%83%D0%B1%D0%BB%D0%B8%D0%BA%D0%B8%2B%D0%9A%D0%B0%D0%B7%D0%B0%D1%85%D1%81%D1%82%D0%B0%D0%BD%2B%28I%2B%D1%82%D0%BE%D0%BC%29.pdf/2a812677-fb37-3841-334e-a9c5f48d3c68?t=1704957387247" target="_blank" rel="noopener">перепись населения</a><span>·</span><a href="https://www.gov.kz/uploads/2024/3/7/e4d408334e8387c5bb4aa2399f6107c2_original.9549542.pdf" target="_blank" rel="noopener">справка об Акжарском районе</a><span>·</span><a href="https://www.gov.kz/org/sko-akzhar-talshyk/about/structure" target="_blank" rel="noopener">акимат сельского округа</a></div>
+        </article>
+        <div class="village-map-card"><div class="village-map-heading"><div><span class="eyebrow">ИНТЕРАКТИВНАЯ КАРТА</span><strong>Где находится Талшык</strong></div><a href="https://www.openstreetmap.org/?mlat=53.63806&mlon=71.87278#map=14/53.63806/71.87278" target="_blank" rel="noopener">Открыть карту ↗</a></div><iframe title="Карта села Талшык на OpenStreetMap" loading="lazy" referrerpolicy="no-referrer" src="https://www.openstreetmap.org/export/embed.html?bbox=71.832%2C53.610%2C71.914%2C53.667&layer=mapnik&marker=53.63806%2C71.87278"></iframe><div class="village-map-credit">Карта © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">участники OpenStreetMap</a></div></div>
+      </div>
+    </section>
+
+    <section class="ideas-section" id="ideas">
+      <div class="section-heading">
+        <div><div class="eyebrow">ОБЩИЕ ДЕЛА</div><h2>Инициативы жителей</h2></div>
+        <button class="button button-outline" type="button" data-backend-required>+ Добавить инициативу</button>
+      </div>
+      <div class="village-initiative-summary">
+        <div class="initiative-summary-lead"><span class="initiative-summary-icon">⌂</span><div><span class="eyebrow">ТАЛШЫК QADAM</span><h3>Идеи становятся делом</h3><p>Предлагайте улучшения, поддерживайте проекты соседей и следите за результатом.</p></div></div>
+        <div class="initiative-summary-stats"><span><strong id="stat-ideas">0</strong>инициатив</span><a href="#ideas" data-hero-filter="На голосовании"><i class="status-dot status-pending"></i><span>На голосовании</span><strong id="stat-pending">0</strong></a><a href="#ideas" data-hero-filter="В работе"><i class="status-dot status-active"></i><span>В работе</span><strong id="stat-active">0</strong></a><a href="#ideas" data-hero-filter="Завершено"><i class="status-dot status-finished"></i><span>Завершено</span><strong id="stat-complete">0</strong></a></div>
+        <div class="initiative-summary-footer"><span><strong id="stat-members">0</strong>жителей участвуют</span><span><strong id="stat-votes">0</strong>голосов поддержки</span></div>
+      </div>
+      <div class="filters-row">
+        <div class="filter-tabs" role="tablist" aria-label="Фильтр инициатив">
+          <button class="filter active" data-filter="Все инициативы">Все инициативы <span class="filter-count">0</span></button>
+          <button class="filter" data-filter="На голосовании">На голосовании</button>
+          <button class="filter" data-filter="В работе">В работе</button>
+          <button class="filter" data-filter="Завершено">Завершено</button>
+        </div>
+        <div class="idea-tools"><label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Найти инициативу" aria-label="Найти инициативу"></label><label class="sort-box"><span>Сортировка</span><select id="idea-sort" aria-label="Сортировка инициатив"><option value="newest">Сначала новые</option><option value="popular">По поддержке</option><option value="progress">По прогрессу</option></select></label></div>
+      </div>
+      <div class="category-row" aria-label="Категории">
+        <button class="category active" data-category="Все">Все категории</button><button class="category" data-category="Благоустройство">⌂ Благоустройство</button><button class="category" data-category="Спорт">◉ Спорт</button><button class="category" data-category="Культура">✳ Культура</button><button class="category" data-category="Экология">♧ Экология</button><button class="category" data-category="Другое">Другое</button>
+      </div>
+      <div class="cards-grid" id="cards-grid"></div>
+      <div class="empty-state" id="empty-state" hidden>По этому запросу инициатив не нашлось. Попробуйте изменить поиск или фильтр.</div>
+      <div class="demo-note"><span>ⓘ</span> Идеи и цифры поддержки ниже — примеры, не реальные результаты. Публикация, регистрация и общее голосование требуют серверной версии.</div>
+    </section>
+
+    <section class="community-section" id="community">
+      <div class="section-heading"><div><div class="eyebrow">СООБЩЕСТВО ТАЛШЫКА</div><h2>Жители</h2></div><span class="community-count"><strong>—</strong> участников</span></div>
+      <div class="pages-community-note"><span class="shortcut-icon shortcut-icon-blue">⌂</span><div><strong>Площадка для жителей</strong><p>В этой публичной версии можно познакомиться с проектом и изучить карту села. Профили, рейтинг и общие предложения подключаются через сервер.</p></div></div>
+    </section>
+
+    <section class="steps-section" id="how-it-works">
+      <div class="steps-intro"><div class="eyebrow">УЧАСТВУЙТЕ В ЖИЗНИ СЕЛА</div><h2>От идеи<br>до результата</h2><p>Сайт помогает жителям делиться предложениями, находить поддержку и видеть, как продвигаются общие проекты.</p></div>
+      <div class="steps-list">
+        <article><span class="step-num">01</span><div><h3>Предложите идею</h3><p>Расскажите, что можно улучшить в Талшыке и кому это поможет.</p></div><span class="step-icon">✎</span></article>
+        <article><span class="step-num">02</span><div><h3>Соберите поддержку</h3><p>Жители голосуют за инициативы, которые считают важными.</p></div><span class="step-icon">♡</span></article>
+        <article><span class="step-num">03</span><div><h3>Объединитесь и действуйте</h3><p>Инициативы переходят в работу, а их авторы могут найти единомышленников.</p></div><span class="step-icon">↗</span></article>
+        <article><span class="step-num">04</span><div><h3>Следите за результатом</h3><p>Публикуем обновления, чтобы было видно, что уже сделано.</p></div><span class="step-icon">✓</span></article>
+      </div>
+    </section>
+
+    <section class="join-banner"><div><div class="eyebrow">ТАЛШЫК НАЧИНАЕТСЯ С НАС</div><h2>Есть идея для села?</h2><p>Расскажите о ней соседям — хорошее дело легче начать вместе.</p></div><a class="button button-dark" href="#ideas">Посмотреть инициативы <span>↗</span></a><span class="banner-flower">✳</span></section>
   </main>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script>
-    (() => {
-      const place = { name: 'Талшык', lat: 53.63806, lon: 71.87278, zoom: 14 };
-      const shell = document.querySelector('#map-shell');
-      const toast = document.querySelector('#map-toast');
-      let toastTimer;
-      const showToast = message => {
-        toast.textContent = message;
-        toast.classList.add('visible');
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove('visible'), 2200);
-      };
-      if (!window.L) {
-        document.querySelector('#map-unavailable').classList.add('visible');
-        return;
-      }
+  <footer><a class="brand footer-brand" href="#top"><span class="brand-mark">T</span><span class="brand-name">ТАЛШЫК<small>САЙТ СЕЛА</small></span></a><span>Новости, события и инициативы жителей</span><a href="#top">Наверх ↑</a></footer>
 
-      const center = [place.lat, place.lon];
-      const map = L.map('map', { zoomControl: false, scrollWheelZoom: true }).setView(center, place.zoom);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
-      }).addTo(map);
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.control.scale({ position: 'bottomleft', imperial: false, maxWidth: 100 }).addTo(map);
-      const markerIcon = L.divIcon({ className: '', html: '<span class="talshyk-marker" aria-hidden="true"></span>', iconSize: [38, 45], iconAnchor: [19, 43], popupAnchor: [0, -41] });
-      const marker = L.marker(center, { icon: markerIcon, title: 'Талшык', alt: 'Село Талшык' }).addTo(map);
-      marker.bindTooltip('Талшык · Талшық', { permanent: true, direction: 'top', offset: [0, -36], className: 'town-label' });
-      marker.bindPopup('<div class="popup-title">Талшык · Талшық</div><div class="popup-sub">Село, Акжарский район, Северо-Казахстанская область</div><a class="popup-link" href="https://www.openstreetmap.org/?mlat=53.63806&mlon=71.87278#map=14/53.63806/71.87278" target="_blank" rel="noopener">Открыть в OpenStreetMap ↗</a>');
-
-      document.querySelector('#center-map').addEventListener('click', () => map.flyTo(center, place.zoom, { duration: .7 }));
-      document.querySelector('#panel-toggle').addEventListener('click', event => {
-        const collapsed = shell.classList.toggle('panel-collapsed');
-        event.currentTarget.setAttribute('aria-expanded', String(!collapsed));
-        event.currentTarget.setAttribute('aria-label', collapsed ? 'Развернуть панель' : 'Свернуть панель');
-        event.currentTarget.title = collapsed ? 'Развернуть панель' : 'Свернуть панель';
-        setTimeout(() => map.invalidateSize(), 300);
-      });
-      document.querySelector('#fullscreen-map').addEventListener('click', async () => {
-        try {
-          if (!document.fullscreenElement) await shell.requestFullscreen();
-          else await document.exitFullscreen();
-          setTimeout(() => map.invalidateSize(), 150);
-        } catch { showToast('Полноэкранный режим недоступен в этом браузере.'); }
-      });
-      document.addEventListener('fullscreenchange', () => {
-        const button = document.querySelector('#fullscreen-map');
-        const active = Boolean(document.fullscreenElement);
-        button.setAttribute('aria-pressed', String(active));
-        button.title = active ? 'Выйти из полного экрана' : 'На весь экран';
-        button.setAttribute('aria-label', button.title);
-        setTimeout(() => map.invalidateSize(), 100);
-      });
-      document.querySelector('#locate-me').addEventListener('click', () => {
-        if (!navigator.geolocation) return showToast('Этот браузер не поддерживает геолокацию.');
-        showToast('Определяем ваше местоположение…');
-        map.once('locationfound', event => {
-          L.circleMarker(event.latlng, { radius: 8, color: '#fff', weight: 3, fillColor: '#3977bd', fillOpacity: 1 }).addTo(map).bindPopup('Вы на карте');
-          showToast('Ваше местоположение показано на карте.');
-        });
-        map.once('locationerror', () => showToast('Не удалось определить местоположение. Проверьте разрешение браузера.'));
-        map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: false, timeout: 12000 });
-      });
-      document.querySelector('#copy-coords').addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(`${place.lat}, ${place.lon}`); showToast('Координаты скопированы.'); }
-        catch { showToast(`${place.lat}, ${place.lon}`); }
-      });
-      document.querySelector('#share-map').addEventListener('click', async () => {
-        const url = `https://www.openstreetmap.org/?mlat=${place.lat}&mlon=${place.lon}#map=${place.zoom}/${place.lat}/${place.lon}`;
-        try {
-          if (navigator.share) await navigator.share({ title: 'Карта Талшыка', text: 'Талшык, Акжарский район', url });
-          else { await navigator.clipboard.writeText(url); showToast('Ссылка на карту скопирована.'); }
-        } catch (error) { if (error.name !== 'AbortError') showToast('Не удалось поделиться ссылкой.'); }
-      });
-      let loadedTiles = 0;
-      let consecutiveTileErrors = 0;
-      map.on('tileerror', () => {
-        consecutiveTileErrors += 1;
-        if (!loadedTiles && consecutiveTileErrors >= 4) document.querySelector('#map-unavailable').classList.add('visible');
-      });
-      map.on('tileload', () => {
-        loadedTiles += 1;
-        consecutiveTileErrors = 0;
-        document.querySelector('#map-unavailable').classList.remove('visible');
-      });
-    })();
-  </script>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="pages.js"></script>
 </body>
 </html>
