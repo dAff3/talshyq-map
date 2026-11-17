@@ -122,8 +122,8 @@ function setAuthMode(register) {
   registering = register;
   document.querySelector('#auth-title').textContent = register ? 'Создать аккаунт' : 'Войти';
   document.querySelector('#auth-copy').textContent = register
-    ? 'Аккаунт и данные останутся только в этом браузере. Первый аккаунт получит локальную админ-панель.'
-    : 'Войдите в аккаунт, сохранённый на этом устройстве.';
+    ? 'Создайте аккаунт, чтобы предлагать идеи и поддерживать инициативы.'
+    : 'Войдите, чтобы участвовать в жизни Талшыка.';
   document.querySelector('#name-field').hidden = !register;
   document.querySelector('#name-field input').required = register;
   document.querySelector('#auth-submit').textContent = register ? 'Зарегистрироваться' : 'Войти';
@@ -160,7 +160,7 @@ function openAccount() {
   document.querySelector('#account-created').textContent = `Аккаунт создан ${new Date(currentUser.createdAt).toLocaleDateString('ru-RU')}`;
   document.querySelector('#account-votes').textContent = votes.length;
   document.querySelector('#account-ideas').textContent = ideas.filter(idea => idea.author_username === currentUser.username).length;
-  document.querySelector('#account-role').textContent = currentUser.role === 'admin' ? 'Администратор этого браузера' : 'Участник этого браузера';
+  document.querySelector('#account-role').textContent = currentUser.role === 'admin' ? 'Администратор' : 'Участник';
   accountDialog.showModal();
 }
 
@@ -268,10 +268,10 @@ document.querySelector('#cards-grid').addEventListener('click', event => {
     const votedIdea = ideas.find(idea => idea.id === voteButton.dataset.ideaId);
     addLocalLog(isRemovingVote ? 'Отменена поддержка' : 'Поддержана инициатива', votedIdea?.title || '');
     render();
-    showToast('Голос сохранён только в этом браузере.');
+    showToast('Спасибо за поддержку!');
     return;
   }
-  if (event.target.closest('[data-demo-action="discussion"]')) showToast('Обсуждения требуют подключения серверной версии.');
+  if (event.target.closest('[data-demo-action="discussion"]')) showToast('Обсуждение скоро появится.');
 });
 function openIdeaForm() {
   if (!currentUser) return openAuth(false);
@@ -304,7 +304,7 @@ document.querySelector('#idea-form').addEventListener('submit', event => {
   document.querySelectorAll('.filter').forEach(item => item.classList.toggle('active', item.dataset.filter === 'Все инициативы'));
   document.querySelectorAll('.category').forEach(item => item.classList.toggle('active', item.dataset.category === 'Все'));
   render();
-  showToast('Идея сохранена в этом браузере.');
+  showToast('Инициатива добавлена.');
 });
 
 document.querySelector('#auth-trigger').addEventListener('click', () => openAuth(false));
@@ -327,7 +327,7 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
       if (!/^[a-z0-9._-]{3,24}$/.test(username)) throw new Error('Логин: 3–24 латинских символа, цифры, точка, _ или -.');
       if (displayName.length < 2 || displayName.length > 40) throw new Error('Имя должно содержать от 2 до 40 символов.');
       if (password.length < 10) throw new Error('Пароль должен быть не короче 10 символов.');
-      if (accounts.some(account => account.username === username)) throw new Error('Этот логин уже занят в этом браузере.');
+      if (accounts.some(account => account.username === username)) throw new Error('Этот логин уже занят.');
       const salt = randomHex();
       const account = {
         id: randomHex(12), username, displayName, salt,
@@ -337,7 +337,7 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
       };
       localStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, account]));
       currentUser = account;
-      addLocalLog(account.role === 'admin' ? 'Создан локальный администратор' : 'Создан аккаунт', username);
+      addLocalLog(account.role === 'admin' ? 'Создан администратор' : 'Создан аккаунт', username);
     } else {
       const account = accounts.find(item => item.username === username);
       if (!account || !hashesMatch(await passwordHash(password, account.salt), account.passwordHash)) {
@@ -352,9 +352,9 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
     authDialog.close();
     updateAccountUI();
     render();
-    showToast(currentUser.role === 'admin' ? `Здравствуйте, ${currentUser.displayName}! У вас локальная админ-панель.` : `Здравствуйте, ${currentUser.displayName}!`);
+    showToast(currentUser.role === 'admin' ? `Здравствуйте, ${currentUser.displayName}! Вы администратор.` : `Здравствуйте, ${currentUser.displayName}!`);
   } catch (error) {
-    showToast(error.message || 'Не удалось сохранить аккаунт в браузере.');
+    showToast(error.message || 'Не удалось сохранить аккаунт.');
   }
 });
 document.querySelector('#close-account').addEventListener('click', () => accountDialog.close());
@@ -366,10 +366,10 @@ document.querySelector('#logout-button').addEventListener('click', () => {
   accountDialog.close();
   updateAccountUI();
   render();
-  showToast('Вы вышли из аккаунта на этом устройстве.');
+  showToast('Вы вышли из аккаунта.');
 });
 document.querySelector('#delete-account').addEventListener('click', () => {
-  if (!currentUser || !confirm('Удалить аккаунт и его локальные голоса из этого браузера?')) return;
+  if (!currentUser || !confirm('Удалить аккаунт и его голоса? Это действие нельзя отменить.')) return;
   addLocalLog('Удалён аккаунт', currentUser.username);
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(readLocalList(ACCOUNTS_KEY).filter(account => account.username !== currentUser.username)));
   const votes = readLocalVotes();
@@ -381,7 +381,7 @@ document.querySelector('#delete-account').addEventListener('click', () => {
   accountDialog.close();
   updateAccountUI();
   render();
-  showToast('Локальный аккаунт удалён.');
+  showToast('Аккаунт удалён.');
 });
 
 document.querySelector('#admin-ideas').addEventListener('change', event => {
@@ -394,11 +394,11 @@ document.querySelector('#admin-ideas').addEventListener('change', event => {
   saveIdeas();
   addLocalLog('Изменён статус инициативы', `${idea.title} · ${idea.status}`);
   render();
-  showToast('Статус обновлён только в этом браузере.');
+  showToast('Статус обновлён.');
 });
 document.querySelector('#admin-ideas').addEventListener('click', event => {
   const button = event.target.closest('[data-admin-delete]');
-  if (!button || currentUser?.role !== 'admin' || !confirm('Удалить эту инициативу из локального списка?')) return;
+  if (!button || currentUser?.role !== 'admin' || !confirm('Удалить эту инициативу?')) return;
   const idea = ideas.find(item => item.id === button.dataset.adminDelete);
   ideas = ideas.filter(item => item.id !== button.dataset.adminDelete);
   const votes = readLocalVotes();
@@ -407,7 +407,7 @@ document.querySelector('#admin-ideas').addEventListener('click', event => {
   saveIdeas();
   addLocalLog('Удалена инициатива', idea?.title || '');
   render();
-  showToast('Инициатива удалена из этого браузера.');
+  showToast('Инициатива удалена.');
 });
 
 const savedUsername = localStorage.getItem(SESSION_KEY);
