@@ -21,6 +21,7 @@
     <nav class="top-nav" aria-label="Главная навигация">
       <a class="nav-active" href="#start">Главная</a>
       <a href="#news">Новости</a>
+      <a href="#announcements">Объявления</a>
       <a href="#events">Афиша</a>
       <a href="#ideas">Инициативы</a>
       <a href="#community">Жители</a>
@@ -68,7 +69,30 @@
           <article class="news-topic-card"><span class="news-topic-icon news-topic-icon-green">▦</span><div><span class="eyebrow">ПУБЛИКАЦИИ</span><h3>Фото и события</h3><p>Место для афиши, встреч и заметок о селе.</p></div><span class="news-topic-arrow">↗</span></article>
         </div>
       </div>
-      <p class="portal-editor-note">Новостная лента и афиша пока служат макетом: публикации появятся после подключения редакторской панели.</p>
+      <p class="portal-editor-note">Новости, объявления и возможности для учеников — в отдельной ленте образования ниже.</p>
+    </section>
+
+    <section class="announcements-section" id="announcements">
+      <div class="section-heading"><div><div class="eyebrow">ОБРАЗОВАНИЕ И ЖИЗНЬ ШКОЛ</div><h2>Объявления</h2></div></div>
+      <div class="announcement-topics">
+        <article><span class="announcement-topic-icon">▤</span><div><strong>Новости образования</strong><p>Объявления школ, события и важная информация.</p></div></article>
+        <article><span class="announcement-topic-icon announcement-topic-warm">✳</span><div><strong>Олимпиады и конкурсы</strong><p>Возможности и достижения учеников.</p></div></article>
+        <article><span class="announcement-topic-icon announcement-topic-blue">⌂</span><div><strong>Для родителей</strong><p>Полезная информация о школьной жизни.</p></div></article>
+      </div>
+      <div class="announcement-tabs" role="tablist" aria-label="Вкладки объявлений">
+        <button class="announcement-tab active" type="button" data-announcement-tab="public" aria-selected="true">Публичные объявления</button>
+        <button class="announcement-tab" type="button" data-announcement-tab="staff" id="staff-announcement-tab" aria-selected="false" hidden>Для сотрудников</button>
+      </div>
+      <div class="announcement-panel" id="public-announcement-panel">
+        <div class="announcement-panel-heading"><div><strong>Новости для жителей</strong><small>Образование, школьные мероприятия и возможности для учеников</small></div><button class="button button-outline announcement-add" id="add-public-announcement" type="button" hidden>+ Опубликовать</button></div>
+        <div class="announcement-list" id="public-announcement-list"></div>
+        <div class="announcement-empty" id="public-announcement-empty" hidden>Пока объявлений нет. Загляните позже.</div>
+      </div>
+      <div class="announcement-panel" id="staff-announcement-panel" hidden>
+        <div class="announcement-panel-heading"><div><strong>Для работников образования</strong><small>Организационные и методические сообщения для коллектива</small></div><button class="button button-outline announcement-add" id="add-staff-announcement" type="button">+ Новое сообщение</button></div>
+        <div class="announcement-list" id="staff-announcement-list"></div>
+        <div class="announcement-empty" id="staff-announcement-empty" hidden>Пока сообщений нет.</div>
+      </div>
     </section>
 
     <section class="village-events" id="events"><div class="events-copy"><div class="eyebrow">КАЛЕНДАРЬ ЖИЗНИ СЕЛА</div><h2>Встречаемся<br>в Талшыке.</h2><p>Анонсы общественных, культурных и спортивных событий будут собраны в одном календаре.</p></div><div class="events-empty"><span class="events-empty-icon">✳</span><div><strong>Афиша появится здесь</strong><small>Когда добавятся события, здесь будут указаны дата, место и подробности.</small></div><a href="#community" aria-label="Перейти к сообществу">↗</a></div></section>
@@ -153,6 +177,8 @@
       <button type="button" class="dialog-close" id="close-auth" aria-label="Закрыть">×</button>
       <div class="eyebrow">TALSHYK QADAM</div><h2 id="auth-title">Войти</h2><p class="dialog-lead" id="auth-copy">Войдите или создайте аккаунт, чтобы участвовать в жизни Талшыка.</p>
       <label id="name-field" hidden>Ваше имя<input name="name" minlength="2" maxlength="40" autocomplete="name" placeholder="Как к вам обращаться?"></label>
+      <label id="profession-field" hidden>Ваша роль или должность<select name="profession"><option value="" disabled selected>Выберите роль или должность</option><option value="teacher">Учитель</option><option value="lecturer">Преподаватель</option><option value="vice_principal">Завуч</option><option value="principal">Директор</option><option value="educator">Воспитатель</option><option value="psychologist">Педагог-психолог</option><option value="methodologist">Методист</option><option value="social_teacher">Социальный педагог</option><option value="librarian">Библиотекарь</option><option value="school_staff">Другой сотрудник школы</option><option value="parent">Родитель</option><option value="student">Ученик</option><option value="resident">Житель</option></select></label>
+      <label id="workplace-field" hidden>Школа или организация <span class="optional-label">необязательно</span><input name="workplace" maxlength="70" autocomplete="organization" placeholder="Например, школа имени Абая"></label>
       <label>Логин<input name="username" required minlength="3" maxlength="24" autocomplete="username" placeholder="Например, aigerim"></label>
       <label>Пароль<input name="password" type="password" required minlength="10" maxlength="128" autocomplete="current-password" placeholder="Не менее 10 символов"></label>
       <button class="button button-lime submit-idea" id="auth-submit" type="submit">Войти</button>
@@ -171,6 +197,17 @@
       <button class="button button-lime submit-idea" type="submit">Сохранить идею</button>
     </form>
   </dialog>
+  <dialog id="announcement-dialog" class="idea-dialog announcement-dialog">
+    <form id="announcement-form">
+      <button type="button" class="dialog-close" id="close-announcement" aria-label="Закрыть">×</button>
+      <div class="eyebrow" id="announcement-dialog-eyebrow">ПУБЛИЧНОЕ ОБЪЯВЛЕНИЕ</div><h2 id="announcement-dialog-title">Новое объявление</h2>
+      <label>Заголовок<input name="title" required maxlength="90" placeholder="Коротко о главном"></label>
+      <label>Раздел<select name="category"><option>Новости образования</option><option>Объявление</option><option>Олимпиады и конкурсы</option><option>Для родителей</option><option>Мероприятия</option></select></label>
+      <label id="announcement-target-field">Для кого<select name="target"><option value="all_staff">Все сотрудники образования</option><option value="teacher">Учителя</option><option value="lecturer">Преподаватели</option><option value="vice_principal">Завучи</option><option value="principal">Директора</option><option value="educator">Воспитатели</option><option value="psychologist">Педагоги-психологи</option><option value="methodologist">Методисты</option><option value="social_teacher">Социальные педагоги</option><option value="librarian">Библиотекари</option><option value="school_staff">Другие сотрудники</option></select></label>
+      <label>Текст<textarea name="body" required maxlength="1200" rows="5" placeholder="Напишите текст объявления"></textarea></label>
+      <button class="button button-lime submit-idea" id="announcement-submit" type="submit">Опубликовать</button>
+    </form>
+  </dialog>
   <dialog id="account-dialog" class="idea-dialog profile-dialog">
     <button type="button" class="dialog-close" id="close-account" aria-label="Закрыть">×</button>
     <div class="account-profile-content">
@@ -178,6 +215,8 @@
       <div class="profile-avatar" id="account-avatar">T</div>
       <h2 id="account-name"></h2>
       <p class="profile-handle" id="account-handle"></p>
+      <div class="profile-profession" id="account-profession"></div>
+      <small class="profile-workplace" id="account-workplace" hidden></small>
       <span class="account-role-badge" id="account-role"></span>
       <div class="profile-stats account-stats"><div><strong id="account-ideas">0</strong><span>моих инициатив</span></div><div><strong id="account-votes">0</strong><span>моих голосов</span></div></div>
       <small class="profile-joined" id="account-created"></small>

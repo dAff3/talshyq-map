@@ -36,14 +36,25 @@ const SESSION_KEY = 'talshyk-pages-session-v1';
 const VOTES_KEY = 'talshyk-pages-local-votes-v1';
 const IDEAS_KEY = 'talshyk-pages-local-ideas-v1';
 const LOGS_KEY = 'talshyk-pages-local-admin-logs-v1';
+const ANNOUNCEMENTS_KEY = 'talshyk-pages-announcements-v1';
+const OCCUPATIONS = {
+  teacher: 'Учитель', lecturer: 'Преподаватель', vice_principal: 'Завуч', principal: 'Директор',
+  educator: 'Воспитатель', psychologist: 'Педагог-психолог', methodologist: 'Методист',
+  social_teacher: 'Социальный педагог', librarian: 'Библиотекарь', school_staff: 'Другой сотрудник школы',
+  parent: 'Родитель', student: 'Ученик', resident: 'Житель',
+};
+const STAFF_OCCUPATIONS = new Set(['teacher', 'lecturer', 'vice_principal', 'principal', 'educator', 'psychologist', 'methodologist', 'social_teacher', 'librarian', 'school_staff']);
 let ideas = readLocalList(IDEAS_KEY);
 if (localStorage.getItem(IDEAS_KEY) === null) ideas = seedIdeas.map(idea => ({ ...idea, author_username: '' }));
+let announcements = readLocalList(ANNOUNCEMENTS_KEY);
 let activeStatus = 'Все инициативы';
 let activeCategory = 'Все';
 let searchTerm = '';
 let sortMode = 'newest';
 let currentUser = null;
 let registering = false;
+let announcementScope = 'public';
+let activeAnnouncementTab = 'public';
 const grid = document.querySelector('#cards-grid');
 const emptyState = document.querySelector('#empty-state');
 const toast = document.querySelector('#toast');
@@ -83,6 +94,18 @@ function saveIdeas() {
   localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
 }
 
+function saveAnnouncements() {
+  localStorage.setItem(ANNOUNCEMENTS_KEY, JSON.stringify(announcements));
+}
+
+function hasStaffAccess(user = currentUser) {
+  return Boolean(user && (user.role === 'admin' || STAFF_OCCUPATIONS.has(user.occupation)));
+}
+
+function canPublishAnnouncements(user = currentUser) {
+  return hasStaffAccess(user);
+}
+
 function addLocalLog(action, details = '') {
   const logs = readLocalList(LOGS_KEY);
   logs.unshift({
@@ -94,10 +117,19 @@ function addLocalLog(action, details = '') {
 
 function ensureLocalAdmin() {
   const accounts = readLocalList(ACCOUNTS_KEY);
-  if (!accounts.length || accounts.some(account => account.role === 'admin')) return accounts;
-  accounts.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-  accounts[0].role = 'admin';
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  let changed = false;
+  accounts.forEach(account => {
+    if (!OCCUPATIONS[account.occupation]) {
+      account.occupation = 'resident';
+      changed = true;
+    }
+  });
+  if (accounts.length && !accounts.some(account => account.role === 'admin')) {
+    accounts.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+    accounts[0].role = 'admin';
+    changed = true;
+  }
+  if (changed) localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
   return accounts;
 }
 
@@ -110,6 +142,7 @@ function updateAccountUI() {
   document.querySelector('#admin-nav-link').hidden = currentUser?.role !== 'admin';
   document.querySelector('#admin-section').hidden = currentUser?.role !== 'admin';
   renderAdmin();
+  renderAnnouncements();
 }
 
 function openAuth(register = false) {
@@ -122,10 +155,15 @@ function setAuthMode(register) {
   registering = register;
   document.querySelector('#auth-title').textContent = register ? 'Создать аккаунт' : 'Войти';
   document.querySelector('#auth-copy').textContent = register
-    ? 'Создайте аккаунт, чтобы предлагать идеи и поддерживать инициативы.'
+    ? 'Укажите свою роль, чтобы видеть объявления для вашей группы.'
     : 'Войдите, чтобы участвовать в жизни Талшыка.';
   document.querySelector('#name-field').hidden = !register;
   document.querySelector('#name-field input').required = register;
+  document.querySelector('#profession-field').hidden = !register;
+  document.querySelector('#profession-field select').required = register;
+  if (!register) document.querySelector('#profession-field select').value = '';
+  document.querySelector('#workplace-field').hidden = !register;
+  if (!register) document.querySelector('#workplace-field input').value = '';
   document.querySelector('#auth-submit').textContent = register ? 'Зарегистрироваться' : 'Войти';
   document.querySelector('#auth-switch').innerHTML = register
     ? 'Уже есть аккаунт? <button type="button" id="switch-auth">Войти</button>'
@@ -157,6 +195,10 @@ function openAccount() {
   document.querySelector('#account-avatar').textContent = currentUser.displayName.slice(0, 1).toUpperCase();
   document.querySelector('#account-name').textContent = currentUser.displayName;
   document.querySelector('#account-handle').textContent = `@${currentUser.username}`;
+  document.querySelector('#account-profession').textContent = OCCUPATIONS[currentUser.occupation] || OCCUPATIONS.resident;
+  const workplace = document.querySelector('#account-workplace');
+  workplace.textContent = currentUser.workplace || '';
+  workplace.hidden = !currentUser.workplace;
   document.querySelector('#account-created').textContent = `Аккаунт создан ${new Date(currentUser.createdAt).toLocaleDateString('ru-RU')}`;
   document.querySelector('#account-votes').textContent = votes.length;
   document.querySelector('#account-ideas').textContent = ideas.filter(idea => idea.author_username === currentUser.username).length;
@@ -233,6 +275,66 @@ function renderAdmin() {
   document.querySelector('#audit-logs').innerHTML = logs.length ? logs.map(log => `<div class="log-row"><span class="log-dot"></span><div class="log-main"><div><b>${escapeHtml(log.action)}</b><time>${escapeHtml(log.created_at)}</time></div><p>${escapeHtml(log.details || '')}</p><small>${escapeHtml(log.actor)}</small></div></div>`).join('') : '<p class="log-empty">Пока действий нет.</p>';
 }
 
+function announcementCard(item, staffOnly = false) {
+  const parsedDate = item.created_at ? new Date(item.created_at) : null;
+  const date = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toLocaleDateString('ru-RU') : '';
+  const audience = staffOnly ? `<span class="announcement-audience">${item.target === 'all_staff' ? 'Все сотрудники' : escapeHtml(OCCUPATIONS[item.target] || 'Сотрудники')}</span>` : '';
+  const canDelete = currentUser && (currentUser.role === 'admin' || currentUser.username === item.author_username);
+  const author = escapeHtml(item.author_name || 'Редакция');
+  const workplace = item.author_workplace ? `<small>${escapeHtml(item.author_workplace)}</small>` : '';
+  return `<article class="announcement-card ${staffOnly ? 'announcement-card-staff' : ''}">
+    <div class="announcement-card-meta"><span>${escapeHtml(item.category)}</span>${audience}<time>${escapeHtml(date)}</time></div>
+    <h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body).replace(/\n/g, '<br>')}</p>
+    <div class="announcement-card-footer"><span class="announcement-author"><b>${author}</b>${workplace}</span>${canDelete ? `<button type="button" data-delete-announcement="${escapeHtml(item.id)}">Удалить</button>` : ''}</div>
+  </article>`;
+}
+
+function setAnnouncementTab(tab) {
+  if (tab === 'staff' && !hasStaffAccess()) tab = 'public';
+  activeAnnouncementTab = tab;
+  document.querySelectorAll('.announcement-tab').forEach(button => {
+    const selected = button.dataset.announcementTab === tab;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-selected', String(selected));
+  });
+  document.querySelector('#public-announcement-panel').hidden = tab !== 'public';
+  document.querySelector('#staff-announcement-panel').hidden = tab !== 'staff';
+}
+
+function renderAnnouncements() {
+  const staffAllowed = hasStaffAccess();
+  document.querySelector('#staff-announcement-tab').hidden = !staffAllowed;
+  document.querySelector('#add-public-announcement').hidden = !canPublishAnnouncements();
+  document.querySelector('#add-staff-announcement').hidden = !staffAllowed;
+  if (!staffAllowed && activeAnnouncementTab === 'staff') activeAnnouncementTab = 'public';
+  setAnnouncementTab(activeAnnouncementTab);
+
+  const publicItems = announcements.filter(item => item.scope === 'public').sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  const staffItems = announcements.filter(item => item.scope === 'staff' && staffAllowed &&
+    (currentUser.role === 'admin' || item.target === 'all_staff' || item.target === currentUser.occupation))
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  document.querySelector('#public-announcement-list').innerHTML = publicItems.map(item => announcementCard(item)).join('');
+  document.querySelector('#staff-announcement-list').innerHTML = staffItems.map(item => announcementCard(item, true)).join('');
+  document.querySelector('#public-announcement-empty').hidden = publicItems.length > 0;
+  document.querySelector('#staff-announcement-empty').hidden = staffItems.length > 0;
+}
+
+function openAnnouncementComposer(scope) {
+  if (!canPublishAnnouncements()) {
+    showToast('Публиковать объявления могут сотрудники образования.');
+    return;
+  }
+  announcementScope = scope === 'staff' ? 'staff' : 'public';
+  const form = document.querySelector('#announcement-form');
+  form.reset();
+  const isStaff = announcementScope === 'staff';
+  document.querySelector('#announcement-dialog-eyebrow').textContent = isStaff ? 'ДЛЯ СОТРУДНИКОВ ОБРАЗОВАНИЯ' : 'ПУБЛИЧНОЕ ОБЪЯВЛЕНИЕ';
+  document.querySelector('#announcement-dialog-title').textContent = isStaff ? 'Сообщение для коллектива' : 'Новое объявление';
+  document.querySelector('#announcement-target-field').hidden = !isStaff;
+  document.querySelector('#announcement-target-field select').disabled = !isStaff;
+  document.querySelector('#announcement-dialog').showModal();
+}
+
 document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
   activeStatus = button.dataset.filter;
   document.querySelectorAll('.filter').forEach(item => item.classList.toggle('active', item === button));
@@ -307,6 +409,51 @@ document.querySelector('#idea-form').addEventListener('submit', event => {
   showToast('Инициатива добавлена.');
 });
 
+document.querySelectorAll('[data-announcement-tab]').forEach(button => button.addEventListener('click', () => {
+  setAnnouncementTab(button.dataset.announcementTab);
+}));
+document.querySelector('#add-public-announcement').addEventListener('click', () => openAnnouncementComposer('public'));
+document.querySelector('#add-staff-announcement').addEventListener('click', () => openAnnouncementComposer('staff'));
+document.querySelector('#close-announcement').addEventListener('click', () => document.querySelector('#announcement-dialog').close());
+document.querySelector('#announcement-dialog').addEventListener('click', event => {
+  if (event.target.id === 'announcement-dialog') event.currentTarget.close();
+});
+document.querySelector('#announcement-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (!canPublishAnnouncements()) return showToast('Публиковать объявления могут сотрудники образования.');
+  const values = Object.fromEntries(new FormData(event.currentTarget).entries());
+  const title = String(values.title || '').trim();
+  const body = String(values.body || '').trim();
+  if (title.length < 3 || body.length < 5) return showToast('Добавьте заголовок и текст объявления.');
+  const item = {
+    id: randomHex(8), scope: announcementScope, title,
+    category: String(values.category || 'Объявление'), body,
+    target: announcementScope === 'staff' ? String(values.target || 'all_staff') : '',
+    author_username: currentUser.username, author_name: currentUser.displayName,
+    author_workplace: currentUser.workplace || '', created_at: new Date().toISOString(),
+  };
+  announcements.unshift(item);
+  saveAnnouncements();
+  addLocalLog(announcementScope === 'staff' ? 'Опубликовано сообщение для сотрудников' : 'Опубликовано публичное объявление', title);
+  event.currentTarget.reset();
+  document.querySelector('#announcement-dialog').close();
+  renderAnnouncements();
+  showToast('Объявление опубликовано.');
+});
+['#public-announcement-list', '#staff-announcement-list'].forEach(selector => {
+  document.querySelector(selector).addEventListener('click', event => {
+    const button = event.target.closest('[data-delete-announcement]');
+    if (!button) return;
+    const item = announcements.find(announcement => announcement.id === button.dataset.deleteAnnouncement);
+    if (!item || (currentUser?.role !== 'admin' && currentUser?.username !== item.author_username)) return;
+    announcements = announcements.filter(announcement => announcement.id !== item.id);
+    saveAnnouncements();
+    addLocalLog('Удалено объявление', item.title);
+    renderAnnouncements();
+    showToast('Объявление удалено.');
+  });
+});
+
 document.querySelector('#auth-trigger').addEventListener('click', () => openAuth(false));
 document.querySelector('#current-user').addEventListener('click', openAccount);
 document.querySelector('#close-auth').addEventListener('click', () => authDialog.close());
@@ -324,13 +471,16 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
     const accounts = readLocalList(ACCOUNTS_KEY);
     if (registering) {
       const displayName = String(values.name || '').trim();
+      const occupation = String(values.profession || '');
+      const workplace = String(values.workplace || '').trim().slice(0, 70);
       if (!/^[a-z0-9._-]{3,24}$/.test(username)) throw new Error('Логин: 3–24 латинских символа, цифры, точка, _ или -.');
       if (displayName.length < 2 || displayName.length > 40) throw new Error('Имя должно содержать от 2 до 40 символов.');
+      if (!OCCUPATIONS[occupation]) throw new Error('Выберите свою роль или должность.');
       if (password.length < 10) throw new Error('Пароль должен быть не короче 10 символов.');
       if (accounts.some(account => account.username === username)) throw new Error('Этот логин уже занят.');
       const salt = randomHex();
       const account = {
-        id: randomHex(12), username, displayName, salt,
+        id: randomHex(12), username, displayName, occupation, workplace, salt,
         passwordHash: await passwordHash(password, salt),
         createdAt: new Date().toISOString(),
         role: accounts.length ? 'resident' : 'admin',
