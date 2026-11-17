@@ -18,7 +18,7 @@
       <span class="brand-mark">T</span>
       <span class="brand-name">ТАЛШЫК<small>САЙТ СЕЛА</small></span>
     </a>
-    <nav class="top-nav" aria-label="Главная навигация">
+    <nav class="top-nav" id="main-navigation" aria-label="Главная навигация">
       <a class="nav-active" href="#start">Главная</a>
       <a href="#news">Новости</a>
       <a href="#announcements">Объявления</a>
@@ -31,7 +31,7 @@
     </nav>
     <label class="theme-control" for="theme-select"><span>Тема</span><select id="theme-select" aria-label="Цветовая тема"><option value="system">Как на устройстве</option><option value="calm">Оливковая</option><option value="sand">Песочная</option><option value="night">Ночная</option></select></label>
     <div class="account-actions"><button class="button button-dark auth-trigger" id="auth-trigger" type="button">Войти</button><button class="button button-dark current-user" id="current-user" type="button" hidden></button><a class="button button-lime top-cta" href="#ideas">Инициативы <span>↘</span></a></div>
-    <button class="menu-toggle" id="menu-toggle" aria-label="Открыть меню">☰</button>
+    <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Открыть меню" aria-controls="main-navigation" aria-expanded="false">☰</button>
   </header>
 
   <main id="top">

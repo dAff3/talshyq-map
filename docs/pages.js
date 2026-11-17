@@ -582,8 +582,16 @@ deviceTheme.addEventListener('change', () => {
 });
 setTheme(localStorage.getItem('talshyk-theme') || 'system');
 
-document.querySelector('#menu-toggle').addEventListener('click', () => document.querySelector('.top-nav').classList.toggle('open'));
-document.querySelectorAll('.top-nav a[href^="#"]').forEach(link => link.addEventListener('click', () => document.querySelector('.top-nav').classList.remove('open')));
+const menuToggle = document.querySelector('#menu-toggle');
+const mainNavigation = document.querySelector('#main-navigation');
+function setMenuOpen(open) {
+  mainNavigation.classList.toggle('open', open);
+  menuToggle.setAttribute('aria-expanded', String(open));
+  menuToggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+  menuToggle.textContent = open ? '×' : '☰';
+}
+menuToggle.addEventListener('click', () => setMenuOpen(!mainNavigation.classList.contains('open')));
+mainNavigation.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', () => setMenuOpen(false)));
 
 const revealSections = [...document.querySelectorAll('main > section')];
 revealSections.forEach(section => section.classList.add('section-reveal'));
