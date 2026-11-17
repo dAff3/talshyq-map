@@ -26,6 +26,7 @@
       <a href="#community">Жители</a>
       <a href="#about">О селе</a>
       <a href="#village-map">Карта</a>
+      <a href="#admin-section" id="admin-nav-link" hidden>Админ</a>
     </nav>
     <label class="theme-control" for="theme-select"><span>Тема</span><select id="theme-select" aria-label="Цветовая тема"><option value="system">Как на устройстве</option><option value="calm">Оливковая</option><option value="sand">Песочная</option><option value="night">Ночная</option></select></label>
     <div class="account-actions"><button class="button button-dark auth-trigger" id="auth-trigger" type="button">Войти</button><button class="button button-dark current-user" id="current-user" type="button" hidden></button><a class="button button-lime top-cta" href="#ideas">Инициативы <span>↘</span></a></div>
@@ -33,7 +34,7 @@
   </header>
 
   <main id="top">
-    <aside class="pages-mode-notice" role="note"><strong>Аккаунты без сервера</strong><span>Регистрация сохраняется только в браузере на этом устройстве. Такие аккаунты не видны другим жителям и не синхронизируются.</span></aside>
+    <aside class="pages-mode-notice" role="note"><strong>Локальный режим</strong><span>Первый аккаунт в браузере получает демо-админ-панель. Аккаунты и изменения видны только на этом устройстве, не другим жителям.</span></aside>
     <section class="village-hero" id="start">
       <div class="village-hero-copy">
         <div class="eyebrow"><span class="village-live-dot"></span> ИНФОРМАЦИОННЫЙ ПОРТАЛ СЕЛА</div>
@@ -91,7 +92,7 @@
     <section class="ideas-section" id="ideas">
       <div class="section-heading">
         <div><div class="eyebrow">ОБЩИЕ ДЕЛА</div><h2>Инициативы жителей</h2></div>
-        <button class="button button-outline" type="button" data-backend-required>+ Добавить инициативу</button>
+        <button class="button button-outline" type="button" id="open-form-list">+ Добавить инициативу</button>
       </div>
       <div class="village-initiative-summary">
         <div class="initiative-summary-lead"><span class="initiative-summary-icon">⌂</span><div><span class="eyebrow">ТАЛШЫК QADAM</span><h3>Идеи становятся делом</h3><p>Предлагайте улучшения, поддерживайте проекты соседей и следите за результатом.</p></div></div>
@@ -115,6 +116,20 @@
       <div class="demo-note"><span>ⓘ</span> Идеи и начальные цифры — примеры. Аккаунты и личные голоса сохраняются только в этом браузере; для общего участия жителей нужен сервер.</div>
     </section>
 
+    <section class="admin-section" id="admin-section" hidden>
+      <div class="admin-header"><div><div class="eyebrow">ЛОКАЛЬНОЕ УПРАВЛЕНИЕ</div><h2>Панель администратора</h2><p>Изменения действуют только в этом браузере.</p></div><span class="admin-badge"><i></i> Администратор</span></div>
+      <div class="admin-overview">
+        <article><span>Всего инициатив</span><strong id="admin-total">0</strong><small>В этой копии сайта</small></article>
+        <article><span>На голосовании</span><strong id="admin-pending">0</strong><small>Текущий статус</small></article>
+        <article><span>В работе</span><strong id="admin-active">0</strong><small>Текущий статус</small></article>
+        <article><span>Завершено</span><strong id="admin-complete">0</strong><small>Текущий статус</small></article>
+      </div>
+      <div class="admin-columns">
+        <div class="admin-box admin-work-list"><div class="admin-box-heading"><div><h3>Инициативы</h3><p>Меняй статус или удаляй карточки на этом устройстве.</p></div><span id="admin-idea-count">0</span></div><div class="admin-table-head"><span>Инициатива</span><span>Поддержка</span><span>Статус</span></div><div id="admin-ideas"></div></div>
+        <div class="admin-box admin-audit"><div class="admin-box-heading"><div><h3>Журнал действий</h3><p>Локальные действия в этом браузере.</p></div><span>20</span></div><div id="audit-logs"></div></div>
+      </div>
+    </section>
+
     <section class="community-section" id="community">
       <div class="section-heading"><div><div class="eyebrow">СООБЩЕСТВО ТАЛШЫКА</div><h2>Жители</h2></div><span class="community-count"><strong>—</strong> участников</span></div>
       <div class="pages-community-note"><span class="shortcut-icon shortcut-icon-blue">⌂</span><div><strong>Личный аккаунт в этом браузере</strong><p>Можно зарегистрироваться и войти с этого устройства. Участники не видят аккаунты друг друга; для общего сообщества нужна серверная база.</p></div></div>
@@ -130,7 +145,7 @@
       </div>
     </section>
 
-    <section class="join-banner"><div><div class="eyebrow">ТАЛШЫК НАЧИНАЕТСЯ С НАС</div><h2>Есть идея для села?</h2><p>Расскажите о ней соседям — хорошее дело легче начать вместе.</p></div><a class="button button-dark" href="#ideas">Посмотреть инициативы <span>↗</span></a><span class="banner-flower">✳</span></section>
+    <section class="join-banner"><div><div class="eyebrow">ТАЛШЫК НАЧИНАЕТСЯ С НАС</div><h2>Есть идея для села?</h2><p>Расскажите о ней соседям — хорошее дело легче начать вместе.</p></div><button class="button button-dark" id="open-form-bottom" type="button">Предложить идею <span>↗</span></button><span class="banner-flower">✳</span></section>
   </main>
   <footer><a class="brand footer-brand" href="#top"><span class="brand-mark">T</span><span class="brand-name">ТАЛШЫК<small>САЙТ СЕЛА</small></span></a><span>Новости, события и инициативы жителей</span><a href="#top">Наверх ↑</a></footer>
 
@@ -146,6 +161,17 @@
       <small class="account-security-note">Пароль не сохраняется открытым текстом. Аккаунт хранится только в этом браузере.</small>
     </form>
   </dialog>
+  <dialog id="idea-dialog" class="idea-dialog">
+    <form id="idea-form">
+      <button type="button" class="dialog-close" id="close-idea" aria-label="Закрыть">×</button>
+      <div class="eyebrow">ТВОЙ ГОЛОС ВАЖЕН</div><h2>Предложить идею</h2>
+      <p class="dialog-lead">Идея сохранится в этом браузере и не появится у других посетителей сайта.</p>
+      <label>Название инициативы<input name="title" required maxlength="70" placeholder="Например, новые скамейки в парке"></label>
+      <label>Категория<select name="category"><option>Благоустройство</option><option>Спорт</option><option>Культура</option><option>Экология</option><option>Другое</option></select></label>
+      <label>Коротко об идее<textarea name="description" required maxlength="240" rows="3" placeholder="Что предлагаешь и кому это поможет?"></textarea></label>
+      <button class="button button-lime submit-idea" type="submit">Сохранить идею</button>
+    </form>
+  </dialog>
   <dialog id="account-dialog" class="idea-dialog profile-dialog">
     <button type="button" class="dialog-close" id="close-account" aria-label="Закрыть">×</button>
     <div class="account-profile-content">
@@ -153,7 +179,8 @@
       <div class="profile-avatar" id="account-avatar">T</div>
       <h2 id="account-name"></h2>
       <p class="profile-handle" id="account-handle"></p>
-      <div class="profile-stats account-stats"><div><strong id="account-votes">0</strong><span>моих голосов</span></div></div>
+      <span class="account-role-badge" id="account-role"></span>
+      <div class="profile-stats account-stats"><div><strong id="account-ideas">0</strong><span>моих инициатив</span></div><div><strong id="account-votes">0</strong><span>моих голосов</span></div></div>
       <div class="account-local-badge">Сохранено в этом браузере</div>
       <small class="profile-joined" id="account-created"></small>
       <div class="account-profile-actions"><button class="button button-dark" id="logout-button" type="button">Выйти</button><button class="account-delete" id="delete-account" type="button">Удалить аккаунт</button></div>

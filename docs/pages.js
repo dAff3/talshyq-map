@@ -1,4 +1,4 @@
-const demoIdeas = [
+const seedIdeas = [
   {
     id: 'park-benches', title: 'Скамейки и тень в центральном парке', category: 'Благоустройство',
     description: 'Установить несколько удобных скамеек и посадить деревья в местах отдыха.',
@@ -34,6 +34,10 @@ const demoIdeas = [
 const ACCOUNTS_KEY = 'talshyk-pages-accounts-v1';
 const SESSION_KEY = 'talshyk-pages-session-v1';
 const VOTES_KEY = 'talshyk-pages-local-votes-v1';
+const IDEAS_KEY = 'talshyk-pages-local-ideas-v1';
+const LOGS_KEY = 'talshyk-pages-local-admin-logs-v1';
+let ideas = readLocalList(IDEAS_KEY);
+if (localStorage.getItem(IDEAS_KEY) === null) ideas = seedIdeas.map(idea => ({ ...idea, author_username: '' }));
 let activeStatus = 'Все инициативы';
 let activeCategory = 'Все';
 let searchTerm = '';
@@ -75,12 +79,37 @@ function readLocalVotes() {
   }
 }
 
+function saveIdeas() {
+  localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
+}
+
+function addLocalLog(action, details = '') {
+  const logs = readLocalList(LOGS_KEY);
+  logs.unshift({
+    actor: currentUser?.displayName || 'Система', action, details,
+    created_at: new Date().toLocaleString('ru-RU'),
+  });
+  localStorage.setItem(LOGS_KEY, JSON.stringify(logs.slice(0, 100)));
+}
+
+function ensureLocalAdmin() {
+  const accounts = readLocalList(ACCOUNTS_KEY);
+  if (!accounts.length || accounts.some(account => account.role === 'admin')) return accounts;
+  accounts.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  accounts[0].role = 'admin';
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  return accounts;
+}
+
 function updateAccountUI() {
   document.querySelector('#auth-trigger').hidden = Boolean(currentUser);
   const userButton = document.querySelector('#current-user');
   userButton.hidden = !currentUser;
-  userButton.textContent = currentUser?.displayName || '';
+  userButton.textContent = currentUser ? `${currentUser.displayName}${currentUser.role === 'admin' ? ' · админ' : ''}` : '';
   userButton.title = currentUser ? `Профиль ${currentUser.displayName}` : '';
+  document.querySelector('#admin-nav-link').hidden = currentUser?.role !== 'admin';
+  document.querySelector('#admin-section').hidden = currentUser?.role !== 'admin';
+  renderAdmin();
 }
 
 function openAuth(register = false) {
@@ -93,7 +122,7 @@ function setAuthMode(register) {
   registering = register;
   document.querySelector('#auth-title').textContent = register ? 'Создать аккаунт' : 'Войти';
   document.querySelector('#auth-copy').textContent = register
-    ? 'Аккаунт будет сохранён только в этом браузере.'
+    ? 'Аккаунт и данные останутся только в этом браузере. Первый аккаунт получит локальную админ-панель.'
     : 'Войдите в аккаунт, сохранённый на этом устройстве.';
   document.querySelector('#name-field').hidden = !register;
   document.querySelector('#name-field input').required = register;
@@ -130,6 +159,8 @@ function openAccount() {
   document.querySelector('#account-handle').textContent = `@${currentUser.username}`;
   document.querySelector('#account-created').textContent = `Аккаунт создан ${new Date(currentUser.createdAt).toLocaleDateString('ru-RU')}`;
   document.querySelector('#account-votes').textContent = votes.length;
+  document.querySelector('#account-ideas').textContent = ideas.filter(idea => idea.author_username === currentUser.username).length;
+  document.querySelector('#account-role').textContent = currentUser.role === 'admin' ? 'Администратор этого браузера' : 'Участник этого браузера';
   accountDialog.showModal();
 }
 
@@ -138,7 +169,7 @@ function statusClass(status) {
 }
 
 function render() {
-  const visible = demoIdeas.filter(idea => {
+  const visible = ideas.filter(idea => {
     const statusMatches = activeStatus === 'Все инициативы' || idea.status === activeStatus;
     const categoryMatches = activeCategory === 'Все' || idea.category === activeCategory;
     const text = `${idea.title} ${idea.description} ${idea.category}`.toLocaleLowerCase('ru');
@@ -150,8 +181,10 @@ function render() {
   });
 
   grid.innerHTML = visible.map(idea => {
-    const voted = Boolean(currentUser && (readLocalVotes()[currentUser.username] || []).includes(idea.id));
-    const voteCount = idea.votes + Number(voted);
+    const localVotes = readLocalVotes();
+    const voted = Boolean(currentUser && (localVotes[currentUser.username] || []).includes(idea.id));
+    const localVoteCount = Object.values(localVotes).reduce((sum, userVotes) => sum + (Array.isArray(userVotes) && userVotes.includes(idea.id) ? 1 : 0), 0);
+    const voteCount = idea.votes + localVoteCount;
     const progress = idea.status !== 'На голосовании'
       ? `<div class="card-progress" aria-label="Выполнено ${idea.progress}%"><i style="width:${idea.progress}%"></i></div>` : '';
     return `<article class="idea-card">
@@ -168,14 +201,36 @@ function render() {
   }).join('');
   emptyState.hidden = visible.length > 0;
   grid.hidden = visible.length === 0;
-  document.querySelector('#stat-ideas').textContent = demoIdeas.length;
-  const personalVotes = currentUser ? (readLocalVotes()[currentUser.username] || []).length : 0;
-  document.querySelector('#stat-votes').textContent = demoIdeas.reduce((sum, idea) => sum + idea.votes, 0) + personalVotes;
+  document.querySelector('#stat-ideas').textContent = ideas.length;
+  const localVotes = readLocalVotes();
+  const personalVotes = Object.values(localVotes).reduce((sum, userVotes) => sum + (Array.isArray(userVotes) ? userVotes.length : 0), 0);
+  document.querySelector('#stat-votes').textContent = ideas.reduce((sum, idea) => sum + idea.votes, 0) + personalVotes;
   document.querySelector('#stat-members').textContent = '—';
-  document.querySelector('#stat-pending').textContent = demoIdeas.filter(idea => idea.status === 'На голосовании').length;
-  document.querySelector('#stat-active').textContent = demoIdeas.filter(idea => idea.status === 'В работе').length;
-  document.querySelector('#stat-complete').textContent = demoIdeas.filter(idea => idea.status === 'Завершено').length;
-  document.querySelector('.filter-count').textContent = demoIdeas.length;
+  document.querySelector('#stat-pending').textContent = ideas.filter(idea => idea.status === 'На голосовании').length;
+  document.querySelector('#stat-active').textContent = ideas.filter(idea => idea.status === 'В работе').length;
+  document.querySelector('#stat-complete').textContent = ideas.filter(idea => idea.status === 'Завершено').length;
+  document.querySelector('.filter-count').textContent = ideas.length;
+  renderAdmin();
+}
+
+function renderAdmin() {
+  const section = document.querySelector('#admin-section');
+  if (!section || currentUser?.role !== 'admin') return;
+  const votes = readLocalVotes();
+  const voteCount = ideaId => ideas.reduce((sum, idea) => sum + (idea.id === ideaId ? idea.votes : 0), 0) +
+    Object.values(votes).reduce((sum, userVotes) => sum + (Array.isArray(userVotes) && userVotes.includes(ideaId) ? 1 : 0), 0);
+  document.querySelector('#admin-total').textContent = ideas.length;
+  document.querySelector('#admin-pending').textContent = ideas.filter(idea => idea.status === 'На голосовании').length;
+  document.querySelector('#admin-active').textContent = ideas.filter(idea => idea.status === 'В работе').length;
+  document.querySelector('#admin-complete').textContent = ideas.filter(idea => idea.status === 'Завершено').length;
+  document.querySelector('#admin-idea-count').textContent = ideas.length;
+  document.querySelector('#admin-ideas').innerHTML = ideas.map(idea => `<div class="admin-idea-row">
+    <div class="admin-idea-title"><strong>${escapeHtml(idea.title)}</strong><small>${escapeHtml(idea.category)} · ${escapeHtml(idea.author_name)}</small><div class="admin-row-actions"><button type="button" data-admin-delete="${escapeHtml(idea.id)}">Удалить</button></div></div>
+    <span class="admin-votes">${voteCount(idea.id)} <small>голосов</small></span>
+    <select data-admin-status="${escapeHtml(idea.id)}" aria-label="Статус инициативы"><option ${idea.status === 'На голосовании' ? 'selected' : ''}>На голосовании</option><option ${idea.status === 'В работе' ? 'selected' : ''}>В работе</option><option ${idea.status === 'Завершено' ? 'selected' : ''}>Завершено</option></select>
+  </div>`).join('');
+  const logs = readLocalList(LOGS_KEY).slice(0, 20);
+  document.querySelector('#audit-logs').innerHTML = logs.length ? logs.map(log => `<div class="log-row"><span class="log-dot"></span><div class="log-main"><div><b>${escapeHtml(log.action)}</b><time>${escapeHtml(log.created_at)}</time></div><p>${escapeHtml(log.details || '')}</p><small>${escapeHtml(log.actor)}</small></div></div>`).join('') : '<p class="log-empty">Пока действий нет.</p>';
 }
 
 document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
@@ -205,19 +260,52 @@ document.querySelector('#cards-grid').addEventListener('click', event => {
     if (!currentUser) return openAuth(false);
     const votes = readLocalVotes();
     const userVotes = votes[currentUser.username] || [];
-    votes[currentUser.username] = userVotes.includes(voteButton.dataset.ideaId)
+    const isRemovingVote = userVotes.includes(voteButton.dataset.ideaId);
+    votes[currentUser.username] = isRemovingVote
       ? userVotes.filter(id => id !== voteButton.dataset.ideaId)
       : [...userVotes, voteButton.dataset.ideaId];
     localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+    const votedIdea = ideas.find(idea => idea.id === voteButton.dataset.ideaId);
+    addLocalLog(isRemovingVote ? 'Отменена поддержка' : 'Поддержана инициатива', votedIdea?.title || '');
     render();
     showToast('Голос сохранён только в этом браузере.');
     return;
   }
   if (event.target.closest('[data-demo-action="discussion"]')) showToast('Обсуждения требуют подключения серверной версии.');
 });
-document.querySelectorAll('[data-backend-required]').forEach(button => button.addEventListener('click', () => {
-  showToast('Публикация инициатив доступна в серверной версии сайта.');
-}));
+function openIdeaForm() {
+  if (!currentUser) return openAuth(false);
+  document.querySelector('#idea-form').reset();
+  document.querySelector('#idea-dialog').showModal();
+}
+['#open-form-list', '#open-form-bottom'].forEach(selector => document.querySelector(selector)?.addEventListener('click', openIdeaForm));
+document.querySelector('#close-idea').addEventListener('click', () => document.querySelector('#idea-dialog').close());
+document.querySelector('#idea-dialog').addEventListener('click', event => { if (event.target.id === 'idea-dialog') event.currentTarget.close(); });
+document.querySelector('#idea-form').addEventListener('submit', event => {
+  event.preventDefault();
+  if (!currentUser) return openAuth(false);
+  const values = Object.fromEntries(new FormData(event.currentTarget).entries());
+  const visualByCategory = { 'Благоустройство': 'park', 'Спорт': 'sport', 'Культура': 'culture', 'Экология': 'clean', 'Другое': 'stage' };
+  const idea = {
+    id: randomHex(8), title: String(values.title).trim(), category: String(values.category),
+    description: String(values.description).trim(), author_name: currentUser.displayName,
+    author_username: currentUser.username, votes: 0, status: 'На голосовании',
+    visual: visualByCategory[values.category] || 'park', progress: 0, created_at: new Date().toISOString().slice(0, 10),
+  };
+  ideas.unshift(idea);
+  saveIdeas();
+  addLocalLog('Добавлена инициатива', idea.title);
+  event.currentTarget.reset();
+  document.querySelector('#idea-dialog').close();
+  activeStatus = 'Все инициативы';
+  activeCategory = 'Все';
+  searchTerm = '';
+  document.querySelector('#search').value = '';
+  document.querySelectorAll('.filter').forEach(item => item.classList.toggle('active', item.dataset.filter === 'Все инициативы'));
+  document.querySelectorAll('.category').forEach(item => item.classList.toggle('active', item.dataset.category === 'Все'));
+  render();
+  showToast('Идея сохранена в этом браузере.');
+});
 
 document.querySelector('#auth-trigger').addEventListener('click', () => openAuth(false));
 document.querySelector('#current-user').addEventListener('click', openAccount);
@@ -245,15 +333,18 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
         id: randomHex(12), username, displayName, salt,
         passwordHash: await passwordHash(password, salt),
         createdAt: new Date().toISOString(),
+        role: accounts.length ? 'resident' : 'admin',
       };
       localStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, account]));
       currentUser = account;
+      addLocalLog(account.role === 'admin' ? 'Создан локальный администратор' : 'Создан аккаунт', username);
     } else {
       const account = accounts.find(item => item.username === username);
       if (!account || !hashesMatch(await passwordHash(password, account.salt), account.passwordHash)) {
         throw new Error('Неверный логин или пароль.');
       }
       currentUser = account;
+      addLocalLog('Вход', username);
     }
     localStorage.setItem(SESSION_KEY, currentUser.username);
     form.reset();
@@ -261,7 +352,7 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
     authDialog.close();
     updateAccountUI();
     render();
-    showToast(`Здравствуйте, ${currentUser.displayName}!`);
+    showToast(currentUser.role === 'admin' ? `Здравствуйте, ${currentUser.displayName}! У вас локальная админ-панель.` : `Здравствуйте, ${currentUser.displayName}!`);
   } catch (error) {
     showToast(error.message || 'Не удалось сохранить аккаунт в браузере.');
   }
@@ -269,6 +360,7 @@ document.querySelector('#auth-form').addEventListener('submit', async event => {
 document.querySelector('#close-account').addEventListener('click', () => accountDialog.close());
 accountDialog.addEventListener('click', event => { if (event.target === accountDialog) accountDialog.close(); });
 document.querySelector('#logout-button').addEventListener('click', () => {
+  addLocalLog('Выход', currentUser.username);
   localStorage.removeItem(SESSION_KEY);
   currentUser = null;
   accountDialog.close();
@@ -278,10 +370,12 @@ document.querySelector('#logout-button').addEventListener('click', () => {
 });
 document.querySelector('#delete-account').addEventListener('click', () => {
   if (!currentUser || !confirm('Удалить аккаунт и его локальные голоса из этого браузера?')) return;
+  addLocalLog('Удалён аккаунт', currentUser.username);
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(readLocalList(ACCOUNTS_KEY).filter(account => account.username !== currentUser.username)));
   const votes = readLocalVotes();
   delete votes[currentUser.username];
   localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+  ensureLocalAdmin();
   localStorage.removeItem(SESSION_KEY);
   currentUser = null;
   accountDialog.close();
@@ -290,8 +384,35 @@ document.querySelector('#delete-account').addEventListener('click', () => {
   showToast('Локальный аккаунт удалён.');
 });
 
+document.querySelector('#admin-ideas').addEventListener('change', event => {
+  const select = event.target.closest('[data-admin-status]');
+  if (!select || currentUser?.role !== 'admin') return;
+  const idea = ideas.find(item => item.id === select.dataset.adminStatus);
+  if (!idea) return;
+  idea.status = select.value;
+  idea.progress = idea.status === 'Завершено' ? 100 : idea.status === 'На голосовании' ? 0 : Math.max(35, idea.progress || 0);
+  saveIdeas();
+  addLocalLog('Изменён статус инициативы', `${idea.title} · ${idea.status}`);
+  render();
+  showToast('Статус обновлён только в этом браузере.');
+});
+document.querySelector('#admin-ideas').addEventListener('click', event => {
+  const button = event.target.closest('[data-admin-delete]');
+  if (!button || currentUser?.role !== 'admin' || !confirm('Удалить эту инициативу из локального списка?')) return;
+  const idea = ideas.find(item => item.id === button.dataset.adminDelete);
+  ideas = ideas.filter(item => item.id !== button.dataset.adminDelete);
+  const votes = readLocalVotes();
+  Object.keys(votes).forEach(username => { votes[username] = (votes[username] || []).filter(id => id !== button.dataset.adminDelete); });
+  localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+  saveIdeas();
+  addLocalLog('Удалена инициатива', idea?.title || '');
+  render();
+  showToast('Инициатива удалена из этого браузера.');
+});
+
 const savedUsername = localStorage.getItem(SESSION_KEY);
-currentUser = readLocalList(ACCOUNTS_KEY).find(account => account.username === savedUsername) || null;
+const storedAccounts = ensureLocalAdmin();
+currentUser = storedAccounts.find(account => account.username === savedUsername) || null;
 updateAccountUI();
 
 const themeSelect = document.querySelector('#theme-select');
