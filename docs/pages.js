@@ -44,6 +44,12 @@ const OCCUPATIONS = {
   parent: 'Родитель', student: 'Ученик', resident: 'Житель',
 };
 const STAFF_OCCUPATIONS = new Set(['teacher', 'lecturer', 'vice_principal', 'principal', 'educator', 'psychologist', 'methodologist', 'social_teacher', 'librarian', 'school_staff']);
+const DEFAULT_ADMIN_ACCOUNT = {
+  id: 'talshyk-default-admin', username: 'admin', displayName: 'Администратор',
+  salt: 'ef64b641ea9b7927a069cc46079a4830',
+  passwordHash: '8818686f91a7d893a60520f0590f3c086a292bfa5e7473babced717880d8b5bd',
+  role: 'admin', occupation: 'resident', workplace: 'Портал Талшыка',
+};
 let ideas = readLocalList(IDEAS_KEY);
 if (localStorage.getItem(IDEAS_KEY) === null) ideas = seedIdeas.map(idea => ({ ...idea, author_username: '' }));
 let announcements = readLocalList(ANNOUNCEMENTS_KEY);
@@ -124,7 +130,20 @@ function ensureLocalAdmin() {
       changed = true;
     }
   });
-  if (accounts.length && !accounts.some(account => account.role === 'admin')) {
+  let defaultAdmin = accounts.find(account => String(account.username).toLowerCase() === DEFAULT_ADMIN_ACCOUNT.username);
+  if (!defaultAdmin) {
+    defaultAdmin = { ...DEFAULT_ADMIN_ACCOUNT, createdAt: new Date().toISOString() };
+    accounts.unshift(defaultAdmin);
+    changed = true;
+  } else {
+    Object.entries(DEFAULT_ADMIN_ACCOUNT).forEach(([key, value]) => {
+      if (defaultAdmin[key] !== value) {
+        defaultAdmin[key] = value;
+        changed = true;
+      }
+    });
+  }
+  if (!accounts.some(account => account.role === 'admin')) {
     accounts.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
     accounts[0].role = 'admin';
     changed = true;
@@ -164,6 +183,8 @@ function setAuthMode(register) {
   if (!register) document.querySelector('#profession-field select').value = '';
   document.querySelector('#workplace-field').hidden = !register;
   if (!register) document.querySelector('#workplace-field input').value = '';
+  document.querySelector('#password-input').minLength = register ? 10 : 1;
+  document.querySelector('#password-input').placeholder = register ? 'Не менее 10 символов' : 'Введите пароль';
   document.querySelector('#auth-submit').textContent = register ? 'Зарегистрироваться' : 'Войти';
   document.querySelector('#auth-switch').innerHTML = register
     ? 'Уже есть аккаунт? <button type="button" id="switch-auth">Войти</button>'
